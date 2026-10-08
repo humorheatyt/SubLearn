@@ -42,13 +42,14 @@ Use this log instead of leaving an unfinished feature silent. Each entry records
 ## REQ-005 — GitHub Actions Gradle failure logs inaccessible from sandbox
 - **Phase/task:** Phase 9 verification; diagnose failed `Verify Android project` step on PR #1.
 - **Needed:** Gradle output from the CI command to identify and repair the build/test/lint failure.
-- **Run/job IDs:** Push run `37822587380`, job `113467143062`; pull-request run `37822600898`, job `113467188179`; both ran commit `b4a8ed3ec5783214a71ba90051e8438d7b988576`. In both, JDK/Gradle setup succeeded, `Verify Android project` failed, and APK upload plus the dependent Android 12 job were skipped.
-- **Tried/result (four retrieval paths):**
-  1. `gh run view 37822600898 --log-failed` and the push-run equivalent failed with EOF while downloading the log ZIP from `results-receiver.actions.githubusercontent.com`.
-  2. GitHub Actions jobs REST API returned step conclusions only; check-run annotations contained only `Process completed with exit code 1`.
-  3. `gh api repos/humorheatyt/SubLearn/actions/jobs/113467188179/logs` also followed the signed-log redirect and failed with EOF.
+- **Run/job IDs:** Initial push run `37822587380`, job `113467143062`, and PR run `37822600898`, job `113467188179`, ran commit `b4a8ed3ec5783214a71ba90051e8438d7b988576`. Diagnostic-workflow push run `37835059008` and PR run `37835063379`, job/check-run `113509864538`, ran commit `c5677279362965b2272df62089dc13def851e692`. All four runs reached `Verify Android project` and failed; APK upload and dependent Android 12 jobs were skipped.
+- **Tried/result (five retrieval paths):**
+  1. `gh run view ... --log-failed` for the initial push/PR runs failed with EOF while downloading the log ZIP from `results-receiver.actions.githubusercontent.com`.
+  2. GitHub Actions jobs REST API returned step conclusions only; initial check-run annotations contained only `Process completed with exit code 1`.
+  3. `gh api repos/humorheatyt/SubLearn/actions/jobs/113467188179/logs` followed the signed-log redirect and failed with EOF.
   4. Fetching the GitHub job page returned “Sign in to view logs” and truncated step output; it exposed no diagnostic lines.
-- **Mitigation implemented:** `.github/workflows/android.yml` now emits the last 30 lines (bounded to 5,000 characters) as a check annotation when Gradle fails. YAML parsing, `bash -n`, and a simulated failing command verified that the annotation is emitted and the step preserves a non-zero exit code. This instrumentation has not yet run in GitHub Actions.
-- **Suspected cause:** The Actions log endpoint redirects to `results-receiver.actions.githubusercontent.com`, a host outside this sandbox's outbound allowlist; the authenticated CLI cannot download that host, and the public HTML fetch is not authenticated for logs.
-- **Next step:** Push the instrumentation on `arena/4386d633-sublearn`; retrieve the resulting check-run annotation through `api.github.com`, diagnose/fix the actual Gradle error, and rerun the workflow. Keep PR #1 draft and unmerged until all checks pass.
+  5. The first CI annotation experiment (commit `c567727`) successfully returned a bounded failure annotation through `api.github.com`, but selected only the bottom stack frames and `BUILD FAILED` summary, not the underlying compiler/task cause.
+- **Mitigation implemented:** `.github/workflows/android.yml` was improved to select Gradle/Kotlin error markers, adjacent context, and the final build summary (bounded to 5,000 characters), rather than only the last lines. YAML parsing, `bash -n`, and a simulated compiler failure verified that its diagnostic appears in a check annotation and the step preserves a non-zero exit code. The improved filter is not yet committed or exercised by GitHub Actions.
+- **Suspected cause:** The Actions log endpoint redirects to `results-receiver.actions.githubusercontent.com`, a host outside this sandbox's outbound allowlist; the authenticated CLI cannot download that host, and the public HTML fetch is not authenticated for logs. The Gradle build failure itself remains unknown.
+- **Next step:** Commit/push the improved marker-based annotation on `arena/4386d633-sublearn`; retrieve the next check-run annotation through `api.github.com`, diagnose/fix the actual Gradle error, and rerun the workflow. Keep PR #1 draft and unmerged until all checks pass.
 - **Severity:** Blocking for compiler/test/lint diagnosis and merge; the PR remains explicitly unverified.

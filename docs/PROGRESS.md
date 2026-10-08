@@ -1,6 +1,6 @@
 # Progress
 
-**Last updated:** 2026-10-08. **Definition of Done: NOT MET.** This is an unverified pre-release implementation on `arena/4386d633-sublearn`. The draft PR is [#1](https://github.com/humorheatyt/SubLearn/pull/1). No successful build, unit test, lint, APK artifact, emulator/device run, merge, or `v0.1.0` tag has been observed; the first two Android CI runs failed in Gradle verification and their log host was inaccessible from this sandbox (REQ-005).
+**Last updated:** 2026-10-08. **Definition of Done: NOT MET.** This is an unverified pre-release implementation on `arena/4386d633-sublearn`. The draft PR is [#1](https://github.com/humorheatyt/SubLearn/pull/1). No successful build, unit test, lint, APK artifact, emulator/device run, merge, or `v0.1.0` tag has been observed; all four Android CI runs so far failed at Gradle verification, and the available annotations have not exposed the cause (REQ-005).
 
 ## Goal
 
@@ -25,7 +25,7 @@ The above is an implementation inventory, not a claim that the app runs. Check `
 - Python `xml.etree.ElementTree` parsed all 15 repository XML files (resources/manifests) with zero errors.
 - Tree-sitter Kotlin grammar parsed all 34 Kotlin source/test files with zero syntax-error or missing nodes. EN/FA parity passed for app (34 keys), core/platform (5), home (23), player (81), learning (14), and settings (141); the local `R.string` reference scan found zero missing keys. These are static checks only: Tree-sitter cannot type-check Android/Compose symbols or substitute for Android resource linking.
 - `./gradlew assembleDebug testDebugUnitTest lint` was attempted locally with a temporary Java 21 runtime; the wrapper failed before configuration because the TLS handshake to `services.gradle.org` failed while downloading Gradle 8.9. Running without Java also fails immediately (`java: not found`). No local Gradle task ran.
-- GitHub Actions runs `37822587380` (push) and `37822600898` (PR #1), for commit `b4a8ed3`, both completed with `Verify Android project` failing; APK upload and dependent Android 12 smoke tests were skipped. The actual Gradle diagnostic could not be retrieved because the logs redirect to an inaccessible host; see `REQ-005`. A bounded failure annotation was added to the workflow and awaits the next run.
+- GitHub Actions runs `37822587380`/`37822600898` (push/PR on `b4a8ed3`) and `37835059008`/`37835063379` (push/PR on `c567727`) all completed with `Verify Android project` failing; APK upload and dependent Android 12 smoke tests were skipped. The first annotation experiment returned stack-tail lines but not the root error. A marker-focused diagnostic improvement has been locally YAML/shell/simulation-checked and awaits a fresh CI run; details are in `REQ-005`.
 
 ## Build recovery attempts and current blockers
 
@@ -35,7 +35,7 @@ See detailed evidence in `AGENT_REQUESTS.md`:
 2. Installed a temporary Java 21 runtime under `/tmp` from PyPI (`jdk4py`) so the wrapper could start; it then failed with `SSLHandshakeException` while downloading Gradle 8.9 from `services.gradle.org`.
 3. Queried the official GitHub release distribution through the allowed GitHub API; its asset redirects to the blocked `release-assets.githubusercontent.com` host. The required Gradle command still reaches no Gradle task.
 
-No Android SDK/emulator result is available. The GitHub Actions build and API 31 smoke workflow were pushed and ran, but Gradle verification failed in both initial runs; the smoke job was skipped. Workflow diagnostics now surface a bounded failure tail through the check annotation, to be validated on the next run.
+No Android SDK/emulator result is available. The GitHub Actions build and API 31 smoke workflow ran on two commits, but Gradle verification failed in both push/PR pairs; the smoke job was skipped. The first diagnostic annotation did not include the root cause; the improved marker-focused annotation awaits a new run.
 
 ## Open license/rights review
 
