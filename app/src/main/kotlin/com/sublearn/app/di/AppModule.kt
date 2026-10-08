@@ -23,7 +23,6 @@ import com.sublearn.platform.SubLearnDatabase
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
-@androidx.annotation.OptIn(markerClass = [androidx.media3.common.util.UnstableApi::class])
 val appModule = module {
     single { SubLearnDatabase.create(androidContext()) }
     single<RecentMediaRepository> { RoomRecentMediaRepository(get<SubLearnDatabase>().recentMediaDao()) }
