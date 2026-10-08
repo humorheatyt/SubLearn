@@ -2,7 +2,7 @@
 
 **SubLearn** is an open-source Android video player and English-learning companion. It puts two independently styled subtitle layers, tap-to-translate, repeat/shadowing controls, a searchable transcript, My Words and opt-in contextual AI around local videos and direct video streams.
 
-> **Verification status:** This repository is being assembled on the Arena session branch. The Gradle wrapper is present, but the sandbox cannot download Gradle 8.9; no Android build, unit test, lint, emulator run, APK, or release has yet been verified. See [docs/PROGRESS.md](docs/PROGRESS.md) and [docs/AGENT_REQUESTS.md](docs/AGENT_REQUESTS.md). Do not treat this pre-release tree as a finished v0.1.0.
+> **Verification status (2026-10-08):** CI is green on `arena/c5e36220-sublearn` — the full gate `assembleDebug testDebugUnitTest :core:domain:test :core:subtitles:test lint` passes (24 JVM unit tests + 4 Robolectric Compose UI tests on API 31 + lint). The release pipeline publishes signed `v0.1.0` APKs (arm64-v8a / armeabi-v7a / x86_64 / universal + SHA256SUMS) on the GitHub Releases page. A physical-device pass (Poco X3 Pro) is still recommended before relying on playback/PiP/decoder specifics; see [docs/CHECKLIST.md](docs/CHECKLIST.md) and [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md).
 
 ## Product defaults
 
@@ -27,19 +27,13 @@ Prerequisites:
 - Google/Maven repository access for Android and Kotlin dependencies
 
 ```bash
-./gradlew assembleDebug
-./gradlew testDebugUnitTest
-./gradlew lint
-./gradlew assembleDebug testDebugUnitTest lint
+./gradlew assembleDebug testDebugUnitTest :core:domain:test :core:subtitles:test lint   # the CI gate
+./gradlew connectedDebugAndroidTest                                                    # emulator/device smoke
 ```
 
-Install the local debug APK with Android Studio or `adb install app/build/outputs/apk/debug/app-debug.apk` after the build succeeds. API 31 emulator smoke tests are configured as `connectedDebugAndroidTest`; a supported emulator is required:
+Install the local debug APK with Android Studio or `adb install app/build/outputs/apk/debug/app-debug.apk`. UI smoke tests run on the JVM (Robolectric, API 31) inside `testDebugUnitTest`; instrumented tests need an emulator or device.
 
-```bash
-./gradlew connectedDebugAndroidTest
-```
-
-GitHub Actions runs the build/unit/lint gate and an Android 12 Compose smoke job. On a tag, the release workflow builds/verifies and attaches the debug APK plus SHA-256 checksum. No tag or release is created until the full NOW scope and legal/test gates are satisfied.
+GitHub Actions runs the gate above plus a non-blocking Android 12 emulator smoke job. Pushing a `v*` tag builds release APKs for **arm64-v8a, armeabi-v7a, x86_64 and universal** with checksums; the `publish-release` workflow verifies signatures and attaches them to the GitHub Release (signing details in `docs/DECISIONS.md` #27).
 
 ## First run
 

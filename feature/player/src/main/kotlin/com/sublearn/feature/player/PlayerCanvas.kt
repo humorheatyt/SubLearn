@@ -101,7 +101,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 import androidx.compose.foundation.gestures.detectTapGestures
 
-@OptIn(UnstableApi::class)
+@androidx.annotation.OptIn(markerClass = [UnstableApi::class])
 @Composable
 internal fun PlayerCanvas(
     controller: PlayerController,
@@ -626,6 +626,7 @@ private fun BoxScope.CornerControls(locked: Boolean, onLock: () -> Unit, onPlayl
 @Composable
 private fun playerIconColors() = IconButtonDefaults.iconButtonColors(containerColor = SubLearnColors.PlayerSubtitleScrim, contentColor = SubLearnColors.PlayerText)
 
+@androidx.annotation.OptIn(markerClass = [UnstableApi::class])
 private fun resizeMode(mode: Int): Int = when (mode) {
     1 -> AspectRatioFrameLayout.RESIZE_MODE_FILL
     2 -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM

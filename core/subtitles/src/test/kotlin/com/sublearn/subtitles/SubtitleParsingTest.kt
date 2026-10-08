@@ -79,8 +79,10 @@ Dialogue: 0,0:00:02.50,0:00:04.00,Default,,0,0,0,,{\i1}One\Ntwo{\i0}.
         val result = SubtitleNormalizer.normalize(cues, maxCharacters = 96)
         assertEquals(2, result.size)
         assertEquals("We are learning.", result.first().text)
-        assertEquals("Really ?", result.last().text)
+        // Stray space before closing punctuation is normalized away (SUB-7).
+        assertEquals("Really?", result.last().text)
         assertEquals(0L, result.first().id)
+        assertEquals("Really?", SubtitleNormalizer.cleanText("Really ?"))
     }
 
     @Test fun batchToolsFlattenAndSplitAtReadableBoundariesWithoutLosingDuration() {
@@ -116,5 +118,73 @@ Dialogue: 0,0:00:02.50,0:00:04.00,Default,,0,0,0,,{\i1}One\Ntwo{\i0}.
         assertEquals(listOf("Learn", "کتاب", "today"), tokens.map { it.text })
         tokens.forEach { token -> assertEquals(token.text, source.substring(token.startOffset, token.endOffset)) }
         assertNotNull(CueTimelineIndex(emptyList()).cues)
+    }
+
+    @Test fun timelineHandlesGapsAdjacentCuesAndSingleEntry() {
+        val index = CueTimelineIndex(
+            listOf(
+                Cue(1, 1_000, 2_000, "first"),
+                Cue(2, 2_000, 3_000, "second"),
+                Cue(3, 9_000, 10_000, "third"),
+            ),
+        )
+        assertEquals("first", index.cueAt(1_000)?.text)
+        assertEquals("second", index.cueAt(2_000)?.text)
+        assertNull(index.cueAt(3_000))
+        assertNull(index.cueAt(5_000))
+        assertEquals(1, index.indexAt(2_500))
+        val single = CueTimelineIndex(listOf(Cue(1, 500, 600, "only")))
+        assertEquals("only", single.cueAt(550)?.text)
+        assertNull(single.cueAt(600))
+    }
+
+    @Test fun longCueSplitPrefersPunctuationAndKeepsNonOverlappingTimes() = runBlocking {
+        val parsed = parser.parse(
+            """1
+00:00:01,000 --> 00:00:09,000
+Although the plan was simple, everyone in the room suddenly started to argue about it.
+""".toByteArray(), "en", "movie.srt",
+        )
+        val normalized = SubtitleNormalizer.splitByMaxCharacters(parsed, 40)
+        assertTrue(normalized.size >= 3)
+        normalized.forEach { assertTrue(it.text.length <= 40) }
+        normalized.zipWithNext { a, b -> assertTrue(a.endMs <= b.startMs || a.endMs <= b.endMs); assertTrue(a.startMs < b.startMs) }
+        assertEquals(1_000L, normalized.first().startMs)
+        assertEquals(9_000L, normalized.last().endMs)
+    }
+
+    @Test fun srtSupportsMultiHourTimestampsAndBom() = runBlocking {
+        val bytes = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) +
+            "1\n01:02:03,004 --> 01:02:04,005\nLong form.\n".toByteArray()
+        val parsed = parser.parse(bytes, "en", "movie.srt")
+        assertEquals(3_723_004L, parsed.single().startMs)
+        assertEquals(3_724_005L, parsed.single().endMs)
+    }
+
+    @Test fun webVttSkipsNoteBlocksAndStopsAtBlankLine() = runBlocking {
+        val parsed = parser.parse(
+            """WEBVTT
+
+NOTE this is a comment
+spanning lines
+
+cue-1
+00:00:02.000 --> 00:00:03.000
+Visible line.
+
+00:00:04.000 --> 00:00:05.000
+Second cue
+""".toByteArray(), "vtt", "sub.vtt",
+        )
+        assertEquals(listOf("Visible line.", "Second cue"), parsed.map { it.text })
+    }
+
+    @Test fun assKeepsCommasInTextAndHandlesWindowsNewlines() {
+        val cues = parseAss(
+            "[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n" +
+                "Dialogue: 0,0:00:01.00,0:00:02.00,Default,,0,0,0,,Wait, what\\Nare you doing?",
+        )
+        assertEquals(1, cues.size)
+        assertEquals("Wait, what are you doing?", cues.single().text)
     }
 }

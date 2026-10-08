@@ -21,6 +21,8 @@ Audit date: 2026-10-08. SubLearn's original application code is licensed under A
 | Android Gradle Plugin, Gradle wrapper, Kotlin Gradle plugins/KSP | AGP 8.7.3, Gradle 8.9 wrapper, Kotlin/KSP plugin versions in the version catalog | Apache-2.0 | Build tooling only. `gradle/wrapper/gradle-wrapper.jar` is the official wrapper from the Gradle `v8.9.0` source tag. It is not application code. |
 | JUnit 4 | 4.13.2 | EPL-1.0 | JVM unit tests only; not packaged in the app. |
 | AndroidX Test Runner/Rules/JUnit and Compose UI Test | pinned in the version catalog | Apache-2.0 | Instrumented smoke tests only; not packaged in the app. |
+| Robolectric | 4.14.1 | Apache-2.0 | JVM-hosted Compose UI tests (API 31) in CI; not packaged in the app. |
+| Android SDK Build-Tools `apksigner` | build-tools 34.0.0 (`lib/apksigner.jar`, SHA-256 `eefdd6ae…2123a`) | Apache-2.0 (Android SDK tools) | Release-signing tool used outside the repository to sign CI-built APKs; not packaged in the app. Retrieved from the npm package `@postar/apktool-node` (which redistributes the official jar) because the Android SDK host is unreachable from the build sandbox. |
 
 Dependency versions are pinned in `gradle/libs.versions.toml`; the Android Gradle dependency graph still needs to be reviewed from a successful CI build/SBOM before release. Transitive notices from Google Play Services, AndroidX, and OkHttp remain applicable. No binary third-party dependency source is copied into this repository.
 

@@ -19,11 +19,38 @@ android {
         vectorDrawables { useSupportLibrary = true }
     }
 
+    signingConfigs {
+        create("release") {
+            val keystorePath = System.getenv("SUBLEARN_KEYSTORE_FILE")
+            if (!keystorePath.isNullOrBlank()) {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("SUBLEARN_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("SUBLEARN_KEY_ALIAS") ?: "sublearn"
+                keyPassword = System.getenv("SUBLEARN_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         debug { applicationIdSuffix = ".debug"; versionNameSuffix = "-debug" }
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Release signing is injected by CI from GitHub Actions secrets (never committed).
+            // Without env configuration the release APK stays unsigned, which local builds can live with.
+            signingConfig = signingConfigs.getByName("release").takeIf { it.storeFile != null }
+        }
+    }
+
+    // Per-ABI + universal APKs are produced only for release builds (CI release workflow).
+    // Debug builds stay a single universal APK so smoke tests keep a stable output path.
+    if (project.hasProperty("sublearnReleaseSplits")) {
+        splits {
+            abi {
+                reset()
+                include("arm64-v8a", "armeabi-v7a", "x86_64")
+                isUniversalApk = true
+            }
         }
     }
 
@@ -34,7 +61,10 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
     packaging { resources.excludes += setOf("META-INF/AL2.0", "META-INF/LGPL2.1") }
-    testOptions { animationsDisabled = true }
+    testOptions {
+        animationsDisabled = true
+        unitTests { isIncludeAndroidResources = true }
+    }
 }
 
 dependencies {
@@ -63,6 +93,11 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.test.ext.junit)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.test.ext.junit)

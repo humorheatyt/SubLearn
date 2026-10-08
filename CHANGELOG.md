@@ -2,7 +2,7 @@
 
 All notable changes are recorded here. The project has not reached its verified v0.1.0 release.
 
-## Unreleased — `arena/4386d633-sublearn`
+## Unreleased — `arena/c5e36220-sublearn`
 
 - Establish modular Android architecture, Compose app shell, design tokens, English/Persian resources, typed settings, and disabled LATER capability boundaries.
 - Add SAF video/folder and direct URL entry, recent media, Media3 player controls/gestures, independent subtitle layers, parsers/normalization, translation, My Words, learning popups, repeat tools, AI-provider settings, and subtitle tools.

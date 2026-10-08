@@ -76,4 +76,31 @@ class DomainLogicTest {
         )
         assertEquals(listOf("is", "with", "words"), words)
     }
+
+    @Test fun nextRepeatStartAddsGapAfterBlockEnd() {
+        assertEquals(3_250L, RepeatPlanner.nextStartMs(1_000, 3_000, 250))
+        assertEquals(3_000L, RepeatPlanner.nextStartMs(1_000, 3_000, 0))
+    }
+
+    @Test fun settingsRoundTripPreservesSurfaceFontsAndGestureBindings() {
+        val source = AppSettings(
+            gestureBindings = defaultGestureBindings() + ("double-tap-video" to GestureAction.SEEK_FORWARD),
+            surfaceFonts = defaultSurfaceFonts() + ("subtitle.learning" to SurfaceFontSettings(sizeSp = 33f, weight = 800)),
+        )
+        val decoded = SettingsCodec.decode(SettingsCodec.encode(source))
+        assertEquals(GestureAction.SEEK_FORWARD, decoded.gestureBindings["double-tap-video"])
+        assertEquals(GestureAction.VOLUME, decoded.gestureBindings["swipe-video-right-vertical"])
+        assertEquals(33f, decoded.surfaceFonts["subtitle.learning"]?.sizeSp)
+        assertEquals(800, decoded.surfaceFonts["subtitle.learning"]?.weight)
+    }
+
+    @Test fun contextAddsFormattedTimestampsWhenConfigured() {
+        val settings = AppSettings(aiContextBlockCount = 2, aiIncludeFilmTitle = false, aiIncludeTimestamps = true)
+        val prompt = AiContextBuilder.build(
+            settings,
+            AiRequest("word", "line", listOf(Cue(1, 3_723_004, 3_724_000, "far")), null, true, settings.aiPrompt),
+        )
+        assertTrue(prompt.contains("[01:02:03] far"))
+        assertFalse(prompt.contains("Film/video:"))
+    }
 }

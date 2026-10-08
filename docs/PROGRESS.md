@@ -1,68 +1,47 @@
 # Progress
 
-**Last updated:** 2026-10-08. **Definition of Done: NOT MET.** This is an unverified pre-release implementation on `arena/4386d633-sublearn`. The draft PR is [#1](https://github.com/humorheatyt/SubLearn/pull/1). No successful build, unit test, lint, APK artifact, emulator/device run, merge, or `v0.1.0` tag has been observed; all fourteen Android CI runs so far failed at Gradle verification. Annotations have exposed compile issues across Home, Media3, Player, and App; the latest App fixes await CI confirmation (REQ-005).
+**Last updated:** 2026-10-08. **Branch:** `arena/c5e36220-sublearn`. **CI:** green (run `37857249419` on `bb7d0cc`): `assembleDebug`, `testDebugUnitTest` (incl. 4 Robolectric Compose UI tests on API 31), `:core:domain:test` (12 tests), `:core:subtitles:test` (12 tests) and `lint` all pass. See `CHECKLIST.md` for the row-by-row evidence and `KNOWN_ISSUES.md` for what still needs a device.
 
 ## Goal
 
-Build SubLearn as a modular Kotlin/Compose Android 12-compatible video/subtitle learning app. NOW scope and IDs are in `PRODUCT_SPEC.md`; the phase order is in `PHASES.md`; the row-by-row work/verification map is `CHECKLIST.md`.
+SubLearn: a free, open-source MX-Player-style Android video player for learning English from subtitles (dual subtitle layers, tap-to-translate, shadowing/repeat tools, My Words, AI help). NOW scope = `PRODUCT_SPEC.md`; plan = `PHASES.md`; decisions = `DECISIONS.md`.
 
-## Implemented in source (not yet compiler/device verified)
+## What is done
 
-- Multi-module Android app with `app`, `core:domain`, `core:subtitles`, `core:platform`, `core:design`, and Home/Player/Learning/Settings features; Koin wiring, Media3, Room, DataStore, Keystore-backed key storage and ML Kit/OkHttp adapters.
-- Home/recent-media screen, SAF video and folder picker, same-folder subtitle discovery, direct URL dialog, video/stream intents and a deferred PDF-to-Learn Coming Soon route.
-- Player overlays, audio/subtitle menus, Media3 controller, supported-decoder capability reporting, aspect ratio/speed/PiP/playlist/lock controls, gestures/feedback, lifecycle progress, brightness restoration and repeat-state flow/UI.
-- SRT/WebVTT/text ASS/SSA parser and normalizer with unit-test source; two independently styled subtitle layers, per-layer delays, external/embedded track assignment, subtitle list/search/no-spoiler and batch tools/export.
-- Word/line/block/drag translation flow, explicit model download UI, Room My Words and known state, per-language word marking, manual level/unknown-word popup path, independent typography, EN/FA resources and app locale direction.
-- Gemini/OpenAI/Anthropic provider abstractions, context/prompt editor/loading/pause/resume and no-backup Keystore-encrypted key storage.
-- LATER interfaces/stubs/false flags, disabled Coming Soon surfaces, `AGENTS.md`, reference/phase/decision/architecture/design/spec/checklist/extension/request/issue docs, license notices, CI and test sources.
-- Shared design tokens in `core:design` now cover spacing, radii, elevation, motion timings, and alpha values; Home/Learning/Player screens consume these tokens for repeated geometry, feedback timing, and translucency.
-- Restored the official 43,504-byte Gradle 8.9 wrapper JAR from the matching upstream tag. Added Room schema v2 nullable subtitle-layer migration.
+- Full multi-module Kotlin/Compose/Material 3 app: `app` + `core:{domain,subtitles,platform,design}` + `feature:{home,player,learning,settings}` (~7k lines), Koin DI, Media3 playback, Room (FTS My Words + recents), typed versioned DataStore settings with JSON export/import, Keystore-encrypted AI keys.
+- Player: MX-style overlay (auto-hide, quick-actions column, dockable subtitle buttons, lock, playlist, aspect ratio, speed, PiP, decoder SW/HW/HW+ offered only when MediaCodec exposes them), configurable gestures (brightness/volume/seek/double-tap/two-finger speed), subtitle list with search/no-spoiler/tap-to-seek, per-layer delay, external+embedded tracks, same-name sidecar auto-load, charset detection (UTF-8/UTF-16/Windows-1256).
+- Subtitle engine: own SRT/WebVTT/ASS parsers → `Cue`, normalization pipeline (tag/entity cleanup, fragment merge, punctuation-aware max-char split), O(log n) timeline, batch tools + SRT export — all pure-JVM unit-tested.
+- Interaction: tap word/line/block + drag phrase translation (ML Kit, explicit model download UI), pause/dismiss/resume rule, My Words save/mark-known/remove (Room FTS), word styling (My Words/known styles; POS/phrase gated behind LATER analyzer), entertainment/learning popups with level fallback that never invents CEFR.
+- Shadowing: repeat-once/hold-auto-repeat, count + pause formula (duration multiplier), stop-at-block-end with temporary-hold inversion.
+- AI: Gemini (default)/OpenAI/Anthropic behind `AiProvider`, prompt editor, context builder (previous N + title + timestamps), loading ring, pause/resume, no keys in logs/exports/backups.
+- Settings system: searchable categorized screens, per-surface/per-language fonts, themes (light/dark/AMOLED), EN + FA (RTL per text run), LATER entries disabled with Coming Soon labels.
+- CI/CD: verify workflow (build + unit + Robolectric UI + lint, debug APK artifact), non-blocking API 31 emulator smoke job, tag-triggered release workflow (3 ABIs + universal APKs + checksums), signed-release publishing workflow, release signing key outside the repo.
+- Docs: complete set (`AGENTS.md`, README, LICENSE Apache-2.0, THIRD_PARTY_NOTICES, CHANGELOG, PRODUCT_SPEC, REFERENCES, ARCHITECTURE, DESIGN_SYSTEM, DECISIONS, PHASES, CHECKLIST, EXTENSION_POINTS, AGENT_REQUESTS, KNOWN_ISSUES, PROGRESS) kept current.
 
-The above is an implementation inventory, not a claim that the app runs. Check `KNOWN_ISSUES.md` before relying on any behavior.
+## What is NOT done (and why)
 
-## Verification actually performed
+1. **Device pass (Poco X3 Pro / API 31 hardware):** impossible from the sandbox. Playback/PiP/gesture feel/decoder quirks/SAF providers/ML Kit download need a real device. Checklist marks these `IMPLEMENTED / DEVICE PENDING` — never "done".
+2. **Instrumented emulator smoke (`connectedDebugAndroidTest`):** the CI job runs but currently fails; the sandbox cannot read the log host. Test reports are uploaded as job artifacts — open the run in GitHub to see the cause. Robolectric UI tests cover the same screens in the blocking gate meanwhile.
+3. **Rights decisions:** REQ-001 (dictionary data provenance — dictionary stays off), REQ-003 (ML Kit Terms of Service — dependency ships; owner should accept or replace), REQ-006 (grant the GitHub App Secrets permission to enable signing-in-CI; until then the two-stage staging-branch signing flow is used, see DECISIONS #27).
+4. **LATER scope** (YouTube section, PDF/browser/image learning, dictionary import, auto level, quiz, update checker, AI re-segmentation/quote marking, speech-to-text, offline NLP, on-device AI, more languages): intentionally stubbed behind interfaces + false flags (see `EXTENSION_POINTS.md`). Stretch promotion order after NOW: (1) dictionary import+lookup, (2) My Words quiz, (3) GitHub-releases update checker.
 
-- Python `xml.etree.ElementTree` parsed all 15 repository XML files (resources/manifests) with zero errors.
-- Tree-sitter Kotlin grammar parsed all 34 Kotlin source/test files with zero syntax-error or missing nodes. EN/FA parity passed for app (34 keys), core/platform (5), home (23), player (81), learning (14), and settings (141); the local `R.string` reference scan found zero missing keys. These are static checks only: Tree-sitter cannot type-check Android/Compose symbols or substitute for Android resource linking.
-- `./gradlew assembleDebug testDebugUnitTest lint` was attempted locally before and after the compiler fixes with a temporary Java 21 runtime; each attempt failed before configuration because the TLS handshake to `services.gradle.org` failed while downloading Gradle 8.9. Running without Java also fails immediately (`java: not found`). No local Gradle task ran.
-- GitHub Actions runs `37822587380`/`37822600898` (`b4a8ed3`), `37835059008`/`37835063379` (`c567727`), `37835733412`/`37835739889` (`b8440e1`), `37836688168`/`37836697332` (`87dc8d2`), `37837301728`/`37837308854` (`271267e`), `37837964458`/`37837971337` (`04bcda4`), and `37838859936`/`37838867243` (`413e725`) all completed with `Verify Android project` failing; APK upload and dependent Android 12 smoke tests were skipped. Annotations exposed Home/Media3/Player/App compile issues. The latest App fixes are locally static-checked and await CI; see `REQ-005`.
-
-## Build recovery attempts and current blockers
-
-See detailed evidence in `AGENT_REQUESTS.md`:
-
-1. Confirmed no system Java/Gradle and restored the official wrapper JAR; a wrapper run without Java reports `java: not found`.
-2. Installed a temporary Java 21 runtime under `/tmp` from PyPI (`jdk4py`) so the wrapper could start; it then failed with `SSLHandshakeException` while downloading Gradle 8.9 from `services.gradle.org`.
-3. Queried the official GitHub release distribution through the allowed GitHub API; its asset redirects to the blocked `release-assets.githubusercontent.com` host. The required Gradle command still reaches no Gradle task.
-
-No Android SDK/emulator result is available. The GitHub Actions build and API 31 smoke workflow ran on seven commits, but Gradle verification failed in all push/PR pairs; the smoke job was skipped. Marker-focused annotations identified compiler issues and guided local fixes, which remain pending CI confirmation.
-
-## Open license/rights review
-
-- **REQ-001:** dictionaryproject's README says its schema/queries were taken from a third-party Android dictionary source and model loader reverse-engineered; no license was found. Nothing derived is included; dictionary remains disabled.
-- **REQ-003:** Google ML Kit is the requested official translation API, but its Android artifact is governed by Google ML Kit Terms of Service, not a permissive OSS license. No model is bundled; review/accept this exception before release.
-- `THIRD_PARTY_NOTICES.md` lists dependencies/assets and requires a resolved Gradle/SBOM/transitive-license audit before release. The app's original code is Apache-2.0; no GPL source or unlicensed reference assets are copied.
-
-## What remains
-
-1. Commit and push the App Room dependency, `safeDrawing` import, and drawer-item compatibility fixes on `arena/4386d633-sublearn`; inspect the next CI result and fix every newly exposed compile/test/lint failure.
-2. Keep PR #1 in draft while CI is red or inconclusive; do not mark any checklist row verified without evidence.
-3. Add or strengthen tests for settings normalization/migration, repository/Room schema, SAF sidecars, all gestures/translation pause-resume, repeat cancellation, and RTL; rerun `./gradlew assembleDebug testDebugUnitTest lint` and `connectedDebugAndroidTest` in CI.
-4. On an API 31 emulator and Poco X3 Pro (or equivalent), verify local and HTTP playback, hardware/software decoder availability, embedded/external subtitle behavior, folder/sidecar permissions, audio focus, PiP, lifecycle/process restore, orientation, brightness/volume, EN/FA and accessibility.
-5. Resolve ML Kit terms and complete the transitive dependency/SBOM review; keep REQ-001 data excluded.
-6. Update every affected checklist/doc, require green CI, produce/review debug APK + checksum, then consider merge and the `v0.1.0` release/tag. Until then, no Definition of Done claim.
-
-## Build/test instructions
-
-On a machine/runner with JDK 17, Android SDK platform/build tools 35, and Google/Maven repository access:
+## How to test it
 
 ```bash
-./gradlew assembleDebug testDebugUnitTest lint
-./gradlew connectedDebugAndroidTest  # API 31 emulator/device required
+./gradlew assembleDebug testDebugUnitTest :core:domain:test :core:subtitles:test lint   # the CI gate
+./gradlew connectedDebugAndroidTest                                                    # API 31 emulator/device
+adb install app/build/outputs/apk/debug/app-debug.apk                                  # try on a phone
 ```
 
-Expected debug APK after a successful build: `app/build/outputs/apk/debug/app-debug.apk`. In this sandbox, the wrapper currently reaches no Gradle task because the distribution download host is blocked; do not interpret that as a source build result.
+UI smoke tests run on the JVM via Robolectric (`app/src/test/kotlin/com/sublearn/app/RobolectricUiSmokeTest.kt`). Install the release APK from GitHub Releases (arm64-v8a for Poco X3 Pro). First run: open a local video (or folder for sidecar subtitles), download the EN↔FA translation model in Settings, tap words to translate.
 
-## How to resume
+## Release state
 
-Read `AGENTS.md`, `KNOWN_ISSUES.md`, `CHECKLIST.md` and `AGENT_REQUESTS.md`. Stay on the fixed session branch. Build/verify through GitHub Actions after push because local network policy blocks the Gradle distribution. Update this file with actual command/check IDs/results at the end of each task.
+See the GitHub Releases page for `v0.1.0`: `SubLearn-0.1.0-{arm64-v8a,armeabi-v7a,x86_64,universal}.apk` + `SHA256SUMS.txt`, signed with the SubLearn release key (SHA-256 cert fingerprint recorded in DECISIONS #27-era notes and `sublearn-signing/`). The key is outside the repo — back it up (REQ-006).
+
+## Continuing checklist
+
+1. Run the device pass and flip the `DEVICE PENDING` rows to verified with evidence.
+2. Fix the emulator smoke job (reports are in the failed run's artifacts) or keep it informational.
+3. Owner: resolve REQ-003/REQ-001/REQ-006.
+4. Stretch LATER items in the fixed order when NOW is fully device-verified.

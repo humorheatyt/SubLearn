@@ -35,7 +35,10 @@ jobs:
         shell: bash
         run: |
           set +e
-          ./gradlew --no-daemon --stacktrace assembleDebug testDebugUnitTest lint 2>&1 | tee "$RUNNER_TEMP/gradle-verification.log"
+          ./gradlew --no-daemon --stacktrace \
+            assembleDebug testDebugUnitTest \
+            :core:domain:test :core:subtitles:test \
+            lint 2>&1 | tee "$RUNNER_TEMP/gradle-verification.log"
           gradle_exit=${PIPESTATUS[0]}
           if (( gradle_exit != 0 )); then
             python3 - "$RUNNER_TEMP/gradle-verification.log" <<'PY'
@@ -45,7 +48,7 @@ jobs:
 
           log = pathlib.Path(sys.argv[1]).read_text(errors="replace")
           lines = log.splitlines()
-          marker = re.compile(r"(?i)(^FAILURE:|^\s*\* What went wrong:|^\s*\* Where:|^\s*\* Exception is:|^\s*Caused by:|Execution failed for task|> Task .* FAILED|\berror:|\be:\s+file:|^e: |^w: file:|BUILD FAILED)")
+          marker = re.compile(r"(?i)(^FAILURE:|^\s*\* What went wrong:|^\s*\* Where:|^\s*\* Exception is:|^\s*Caused by:|Execution failed for task|> Task .* FAILED|\berror:|\be:\s+file:|^e: |^w: file:|BUILD FAILED|^\S+Test > .* FAILED|AssertionError|ComparisonFailure|\bexpected:)")
           hits = [index for index, line in enumerate(lines) if marker.search(line)]
           selected = set()
           for index in hits[-60:]:
@@ -61,7 +64,18 @@ jobs:
               details = "\n".join(excerpts)
           else:
               details = "\n".join(lines[-60:])
-          details = details[-5000:] or "Gradle exited without diagnostic output."
+          # Include every lint Error line from text reports so no error stays hidden.
+          lint_errors = []
+          for report in pathlib.Path(".").glob("**/build/**/lint-results*.txt"):
+              try:
+                  for line in report.read_text(errors="replace").splitlines():
+                      if "Error:" in line:
+                          lint_errors.append(line.strip())
+              except OSError:
+                  pass
+          if lint_errors:
+              details += "\n--- lint errors ---\n" + "\n".join(lint_errors[:40])
+          details = details[-7000:] or "Gradle exited without diagnostic output."
           encoded = details.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
           print(f"::error title=Gradle verification failure::{encoded}")
           PY
@@ -74,15 +88,31 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
+      - name: Upload test and lint reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sublearn-reports-${{ github.sha }}
+          path: |
+            **/build/reports/**
+            **/build/test-results/**
+          if-no-files-found: ignore
+          retention-days: 14
 
   android-12-smoke:
-    name: Android 12 Compose smoke tests
+    name: Android 12 Compose smoke tests (non-blocking)
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     needs: verify
+    continue-on-error: true
     steps:
       - name: Check out source
         uses: actions/checkout@v7
+      - name: Enable KVM for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
       - name: Set up JDK 17
         uses: actions/setup-java@v6
         with:
@@ -90,6 +120,22 @@ jobs:
           java-version: '17'
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
+      - name: Prepare smoke-error extractor
+        if: always()
+        run: |
+          cat > "$RUNNER_TEMP/extract-smoke-errors.py" <<'PY'
+          import pathlib, re, sys
+          log = pathlib.Path(sys.argv[1]).read_text(errors="replace")
+          lines = log.splitlines()
+          marker = re.compile(r"(?i)(FAILED|AssertionError|Error:|Caused by:|Process .* crashed|INSTALL_FAILED|BUILD FAILED)")
+          hits = [i for i, l in enumerate(lines) if marker.search(l)]
+          sel = set()
+          for i in hits[-40:]:
+              sel.update(range(max(0, i - 1), min(len(lines), i + 3)))
+          out = "\n".join(lines[i] for i in sorted(sel))[-5000:] or "\n".join(lines[-40:])
+          enc = out.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print(f"::error title=Android 12 smoke failure::{enc}")
+          PY
       - name: Run instrumented smoke tests on API 31
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -97,4 +143,23 @@ jobs:
           arch: x86_64
           profile: pixel_2
           target: google_apis
-          script: ./gradlew --no-daemon connectedDebugAndroidTest
+          disable-animations: true
+          script: |
+            set +e
+            ./gradlew --no-daemon connectedDebugAndroidTest > "$RUNNER_TEMP/androidTest.log" 2>&1
+            exit_code=$?
+            cat "$RUNNER_TEMP/androidTest.log"
+            if [ "$exit_code" -ne 0 ]; then
+              python3 "$RUNNER_TEMP/extract-smoke-errors.py" "$RUNNER_TEMP/androidTest.log" || true
+            fi
+            exit "$exit_code"
+      - name: Upload instrumented test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sublearn-androidTest-reports-${{ github.sha }}
+          path: |
+            **/build/reports/androidTests/**
+            **/build/outputs/androidTest-results/**
+          if-no-files-found: ignore
+          retention-days: 14

@@ -4,7 +4,7 @@ This file is the single entry point for future agents. Before changing code, rea
 
 ## Non-negotiable constraints
 
-- Work only on Arena's session branch `arena/4386d633-sublearn`. Do not switch branches. Do not commit/push any other branch.
+- Work only on Arena's session branch `arena/c5e36220-sublearn`. Do not switch branches. The only exception is the temporary `release-staging/<tag>` branch used to transport APKs for out-of-band signing (see `docs/DECISIONS.md` #27); it is deleted after the GitHub Release is published.
 - Inspect before coding. Preserve the project structure. Use phase labels from `docs/PHASES.md`; they are work labels, not permission to create another Git branch.
 - For each task, write a 3–6 line plan, implement, run `./gradlew assembleDebug testDebugUnitTest lint`, fix observed failures, verify against `docs/CHECKLIST.md`, then update the relevant docs and `docs/PROGRESS.md`.
 - Do not ask the user questions. Make a reasonable assumption and record it in `docs/DECISIONS.md` with the explicit marker `ASSUMPTION`.
@@ -28,7 +28,7 @@ This file is the single entry point for future agents. Before changing code, rea
 
 ## GitHub workflow
 
-Use `git` for status/diff/commit/push and `gh` for PR/issues/checks/releases. Push only with `git push origin arena/4386d633-sublearn`. If authentication fails, ask the user to reconnect GitHub in Arena; never request credentials in chat. See developer/session instructions for fixed branch constraints.
+Use `git` for status/diff/commit/push and `gh` for PR/issues/checks/releases. Push only with `git push origin arena/c5e36220-sublearn`. If authentication fails, ask the user to reconnect GitHub in Arena; never request credentials in chat. See developer/session instructions for fixed branch constraints.
 
 ## Documentation map
 

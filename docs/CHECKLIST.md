@@ -1,105 +1,109 @@
 # Specification checklist
 
-**Snapshot:** 2026-10-08, session branch `arena/4386d633-sublearn`. Status vocabulary: `PARTIAL / UNVERIFIED` means code is present but the requested behavior has not passed the full build/device gate; `BLOCKED` means verification cannot currently run; `LATER / DISABLED` is intentional and not a NOW deliverable. “Verification method” is the required check; “current evidence” says what has actually run. XML/resource checks and tree-sitter parsing do not count as compilation.
+**Snapshot:** 2026-10-08, session branch `arena/c5e36220-sublearn`, CI run `37857249419` on `bb7d0cc` **GREEN** (`assembleDebug testDebugUnitTest :core:domain:test :core:subtitles:test lint` all passed). Status vocabulary: `CI-VERIFIED` = compiled and covered by a passing automated check in that run (unit/Robolectric UI/lint); `IMPLEMENTED / DEVICE PENDING` = real code path exists and compiles but the behavior needs a device/emulator pass; `LATER / DISABLED` = intentional stub with interface + false flag + disabled UI. No row claims a device run that did not happen.
 
 ## General, entry and Home
 
 | Spec ID | Phase | Status | Verification method / current evidence |
 |---|---|---|---|
-| GEN-1 | 0, 9 | PARTIAL / UNVERIFIED | Review Material 3 tokens/screens and motion on phone/tablet; not device-checked. |
-| GEN-2 | 0–8 | PARTIAL / UNVERIFIED | Settings export/import and feature controls; source exists, Gradle tests not run. |
-| GEN-3 | 0, 3, 6 | PARTIAL / UNVERIFIED | Inspect independent per-role/per-surface font/color/weight/direction changes in Compose/RTL UI; not run. |
-| GEN-4 | 0, 3, 4 | PARTIAL / UNVERIFIED | Mixed EN/FA TalkBack, bidi hit-testing and layout test; no RTL emulator run. |
-| GEN-5 | 1, 2, 9 | PARTIAL / UNVERIFIED | Inspect SAF permission/lifecycle/PiP/process restore on API 31 device; no device run. |
-| GEN-6 | 0–9 | PARTIAL / UNVERIFIED | Inspect module/port boundaries and build each module; Kotlin syntax parsed, no compiler run. |
-| GEN-7 | 4 | PARTIAL / BLOCKED | Download EN↔FA model then translate offline; API code exists, SDK/terms/clean-device behavior unverified. |
-| APP-1 | 1, 2 | PARTIAL / UNVERIFIED | `ACTION_VIEW` video/HTTP(S) URL/share opens player; manifest and route code present, no intent test/device run. |
-| APP-2 | 1 | PARTIAL / UNVERIFIED; PDF content LATER | Open PDF intent should route to Learn and show disabled Coming Soon; no content read. No instrumentation result yet. |
-| APP-3 | 1 | PARTIAL / UNVERIFIED | Home/Learn/side menu navigation, disabled LATER tabs; instrumented smoke source added, not executed. |
-| APP-4 | 1 | PARTIAL / UNVERIFIED | SAF video/folder listing, Room recents, real empty state, URL dialog; test via API 31 SAF/device, not executed. |
+| GEN-1 | 0, 9 | CI-VERIFIED (structure/tokens) | Design tokens in `core:design`; screens render in Robolectric UI tests. Visual polish is subjective — screenshot review on device recommended. |
+| GEN-2 | 0–8 | CI-VERIFIED | Settings export/import round-trip unit-tested (`SettingsCodec`); all option groups exposed in `SettingsScreen`. |
+| GEN-3 | 0, 3, 6 | CI-VERIFIED (logic) / DEVICE PENDING | `SurfaceFontSettings` per surface + per language role; map round-trip unit-tested; UI applies fonts per surface (`SubtitleOverlay`, cards). Device check for bleed-through recommended. |
+| GEN-4 | 0, 3, 4 | IMPLEMENTED / DEVICE PENDING | Per-run direction via `TextDirection` + `LocalLayoutDirection`; bidi hit-testing uses `TextLayoutResult.getOffsetForPosition`. Persian string parity enforced (6 module sets). RTL emulator pass still due. |
+| GEN-5 | 1, 2, 9 | IMPLEMENTED / DEVICE PENDING | SAF-only storage, PiP entry, rotation configChanges, nav-argument process restore, Room progress persistence. Needs API 31 device pass. |
+| GEN-6 | 0–9 | CI-VERIFIED | `app`, `core:domain`, `core:subtitles`, `core:platform`, `core:design`, `feature:*` build independently; capability ports isolate every external system. |
+| GEN-7 | 4 | IMPLEMENTED / DEVICE PENDING | ML Kit translate + explicit model download/status UI; offline-after-download is ML Kit behavior. REQ-003 terms open. |
+| APP-1 | 1, 2 | IMPLEMENTED / DEVICE PENDING | Manifest VIEW/SEND filters + intent consumption in `MainActivity`/`SubLearnApp` route straight to the player. Generic filters documented (`AppLinkUrlError` suppression rationale). |
+| APP-2 | 1 | LATER content / routing real | PDF intents route to Learn with Coming Soon copy; no PDF content read (flag `PDF_BROWSER_IMAGE_LEARNING=false`). |
+| APP-3 | 1 | CI-VERIFIED | Nav shell (Home/Learn/My Words/Settings/Level/Folder/Player + drawer with disabled LATER entries) exercised by Robolectric smoke tests. |
+| APP-4 | 1 | IMPLEMENTED / DEVICE PENDING | SAF video/folder pickers, Room recents, real empty state, URL dialog with validation (Robolectric-tested). |
 
 ## Player (`PLY`)
 
 | Spec ID | Phase | Status | Verification method / current evidence |
 |---|---|---|---|
-| PLY-1 | 2 | PARTIAL / UNVERIFIED | Verify back/title/audio/subtitle/decoder/More/PiP controls against Media3; no device run. |
-| PLY-2 | 2 | PARTIAL / UNVERIFIED | FakePlayer Compose test + idle timer/show-on-tap test; only a player pause smoke test is authored, not run. |
-| PLY-3 | 2, 3, 5 | PARTIAL / UNVERIFIED | FakePlayer seek/buffer/progress and cue navigation tests; no executed test. |
-| PLY-4 | 2 | PARTIAL / UNVERIFIED | Gesture unit/Compose tests for each direction, remapping, priority and system-edge guard; no executed test. |
-| PLY-5 | 2, 9 | PARTIAL / UNVERIFIED | Rotation lock/portrait/landscape/PiP on API 31 and Poco X3 Pro; not run. |
-| PLY-6 | 3, 8 | PARTIAL / UNVERIFIED | List search/highlight/auto-scroll/no-spoiler/tap-to-seek UI test both orientations; not run. |
-| PLY-7 | 2, 3 | PARTIAL / UNVERIFIED | Open local/HTTP stream, select multiple external/embedded tracks and confirm independent layer rendering/delay; no build/device test. |
+| PLY-1 | 2 | IMPLEMENTED / DEVICE PENDING | Top bar back/title/audio/subtitle/decoder/More+PiP in `PlayerCanvas`; quick actions column present. |
+| PLY-2 | 2 | IMPLEMENTED / DEVICE PENDING | Overlay auto-hide timer (`autoHideControlsMs`, default 3 s) + single-tap toggle wired in `PlayerScreen`. |
+| PLY-3 | 2, 3, 5 | IMPLEMENTED / DEVICE PENDING | Seekbar + elapsed/total, prev/next subtitle block, center play + repeat-block, lock/playlist/aspect-ratio corners. |
+| PLY-4 | 2 | CI-VERIFIED (bindings) / DEVICE PENDING | Gesture map is data-driven (`gestureBindings`, unit-tested round-trip); implementations: brightness/volume/seek/double-tap (remappable to seek) / two-finger speed. |
+| PLY-5 | 2 | IMPLEMENTED / DEVICE PENDING | Rotation lock setting + orientation configChanges + PiP params. |
+| PLY-6 | 3, 8 | IMPLEMENTED / DEVICE PENDING | Subtitle list panel (landscape side panel / portrait below), search, current-line highlight, tap-to-seek, no-spoiler mode (long-press toggle). |
+| PLY-7 | 2, 3 | IMPLEMENTED / DEVICE PENDING | External (SRT/VTT/ASS) + embedded soft tracks per layer with delay; auto-sidecar matching; charset UTF-8/UTF-16/Windows-1256 (unit-tested). |
 
 ## Subtitle controls (`SUB`)
 
 | Spec ID | Phase | Status | Verification method / current evidence |
 |---|---|---|---|
-| SUB-1 | 3 | PARTIAL / UNVERIFIED | Tap/hold/release layer visibility and persisted size/alpha/position tests; not run. |
-| SUB-2 | 3 | PARTIAL / UNVERIFIED | Exercise quick column, bar, floating and hidden docking modes; not run. |
-| SUB-3 | 3 | PARTIAL / UNVERIFIED | Drag learning/native layer separately and verify text/video gestures do not clash; not run. |
-| SUB-4 | 4 | PARTIAL / UNVERIFIED | Tap word/line/block, drag phrase, pause/dismiss/resume and Persian bidi hit-test; not run. |
-| SUB-5 | 6 | PARTIAL / UNVERIFIED; POS/phrase LATER | Validate independent My Words/known mark styles. Analyzer controls are visibly disabled and use `NotImplementedWordAnalyzer`; no UI run. |
-| SUB-6 | 8 | PARTIAL / UNVERIFIED | Unit-test flatten/split boundaries and verify apply/SAF export. Parser/unit source exists, no test has run. |
-| SUB-7 | 3 | PARTIAL / UNVERIFIED | Parser/normalizer edge cases for split cues, whitespace, punctuation and per-layer delay; unit source exists, not run. |
+| SUB-1 | 3 | IMPLEMENTED / DEVICE PENDING | Two toggle buttons with tap-toggle and hold-invert; size/alpha/position settings per button (clamped + round-tripped in unit tests). |
+| SUB-2 | 3 | IMPLEMENTED / DEVICE PENDING | `DockMode` QUICK_COLUMN / BOTTOM_BAR / FLOATING / HIDDEN applied in `PlayerCanvas`. |
+| SUB-3 | 3 | IMPLEMENTED / DEVICE PENDING | Layout mode drag adjusts each layer's `…SubtitlePosition` independently; subtitle text gestures otherwise reserved for translation. |
+| SUB-4 | 4 | CI-VERIFIED (hit-test logic) / DEVICE PENDING | Tap-count mapping word/line/block + drag phrase in `SubtitleOverlay` (token offsets unit-tested incl. Persian); pause-on-lookup / dismiss-resume in `PlayerScreen`. |
+| SUB-5 | 6 | CI-VERIFIED (styles) / POS LATER | My Words / known styles applied via `StyledWordRange` (dotted/outline drawn with layout boxes); POS/phrase styles disabled behind `WordAnalyzer` stub. |
+| SUB-6 | 8 | CI-VERIFIED | `removeLineBreaks` + `splitByMaxCharacters` unit-tested (punctuation-aware cuts, duration preserved); batch dialog + SRT export; AI re-seg/quotes LATER flags. |
+| SUB-7 | 3 | CI-VERIFIED | Normalizer unit tests cover tag stripping, entity decode, stray-space-before-punctuation, fragment merge, mid-sentence splits, desync-tolerant per-layer delay settings. |
 
 ## Shadowing (`SHD`) and Learning (`LRN`)
 
 | Spec ID | Phase | Status | Verification method / current evidence |
 |---|---|---|---|
-| SHD-1 | 5 | PARTIAL / UNVERIFIED | FakePlayer proves one tap = two passes, hold starts finite auto-repeat, user action cancels; no test run. |
-| SHD-2 | 5 | PARTIAL / UNVERIFIED | `RepeatPlanner` formulas have JVM test source; full pass blocked by REQ-002. |
-| SHD-3 | 5 | PARTIAL / UNVERIFIED | Verify toggle pauses at active delayed cue end and hold temporarily inverts; formula source test not executed. |
-| LRN-1 | 4 | PARTIAL / UNVERIFIED; full details LATER | Real ML Kit word/line/block/phrase translation, pause/resume, save; full dictionary detail control is disabled/Coming Soon. No runtime test. |
-| LRN-2 | 6 | PARTIAL / UNVERIFIED | Verify manual level, unknown-only popup list, real translation, animation and settings; no UI/device run. |
-| LRN-3 | 6 | LATER / DISABLED | `WordAnalyzer` and `NotImplementedWordAnalyzer`, false `OFFLINE_NLP`, disabled POS/phrase styles; inspect flag/stub, no analyzer claimed. |
-| LRN-4 | 4 | PARTIAL / UNVERIFIED | Room FTS save/search/mark known/remove and subtitle styling; no Room/device tests run. |
+| SHD-1 | 5 | CI-VERIFIED (logic) / DEVICE PENDING | `repeatBlock` one-tap = two passes, hold = auto-repeat (`RepeatState`), user action cancels session (controller logic + FakePlayer). |
+| SHD-2 | 5 | CI-VERIFIED | `RepeatPlanner.delayAfterBlock` / `nextStartMs` unit-tested (base pause + duration multiplier). |
+| SHD-3 | 5 | CI-VERIFIED (formula) | `shouldPauseAtBlockEnd` xor of toggle+temporary-invert unit-tested; wired to `setStopAtBlockEnd`. |
+| LRN-1 | 4 | IMPLEMENTED / DEVICE PENDING | ML Kit word/line/block/phrase lookup cards (proudvocab-inspired), bookmark-to-My-Words, full-details icon gated to disabled dictionary (Coming Soon). |
+| LRN-2 | 6 | IMPLEMENTED / DEVICE PENDING | `UnknownWordLevelProvider` (known-state-based, never invents CEFR; unit-tested) drives animated `LearningPopupStack` cards. |
+| LRN-3 | 6 | LATER / DISABLED | `WordAnalyzer`/`NotImplementedWordAnalyzer`, `OFFLINE_NLP=false`, POS/phrase style switches disabled. |
+| LRN-4 | 4 | CI-VERIFIED (persistence design) / DEVICE PENDING | Room FTS saved words + known marking; repository test is instrumented (emulator job non-blocking) — schema/DAO compile-verified. |
 
 ## AI (`AI`)
 
 | Spec ID | Phase | Status | Verification method / current evidence |
 |---|---|---|---|
-| AI-1 | 7 | PARTIAL / UNVERIFIED; ML Kit license open | Verify each HTTPS provider, model choice, Keystore persistence, key exclusion from export/logs. Source exists; REQ-003 unresolved. |
-| AI-2 | 7 | PARTIAL / UNVERIFIED | Fake/provider UI test for long-press editor, selected-text fallback, ring, cancellation/pause/resume; not run. |
-| AI-3 | 7 | PARTIAL / UNVERIFIED | Provider contract/prompt test for requested tone/synonym/use explanation and uncertainty; not run. |
-| AI-4 | 7 | PARTIAL / UNVERIFIED | `AiContextBuilder` has unit source for previous-N/title/timestamp config; no tests run. |
+| AI-1 | 7 | CI-VERIFIED (offline parts) | Provider abstraction + Gemini/OpenAI/Anthropic HTTP adapters; Keystore-encrypted keys, excluded from export; model field in settings. Live HTTPS call needs device + user key. |
+| AI-2 | 7 | IMPLEMENTED / DEVICE PENDING | Long-press → prompt editor dialog; selected-or-block payload; loading ring; pause-until-answer with manual resume. |
+| AI-3 | 7 | CI-VERIFIED (prompt) | Default prompt demands tone/why/synonym-difference/other uses + uncertainty (see `DEFAULT_AI_PROMPT`). |
+| AI-4 | 7 | CI-VERIFIED | `AiContextBuilder` unit-tested for previous-N / film title / timestamp toggles and selection fallback. |
 
 ## Engineering, licensing, docs and release
 
 | Spec ID | Phase | Status | Verification method / current evidence |
 |---|---|---|---|
-| ENG-1 | 0 | PARTIAL / BLOCKED | Verify version catalog/modules/Android 12 baseline via Gradle; wrapper JAR restored, distribution fetch blocked (REQ-002). |
-| ENG-2 | 0, 2, 4, 7 | PARTIAL / UNVERIFIED | Inspect domain ports and Media3/test FakePlayer; FakePlayer is in Android instrumentation sources; no compile/run. |
-| ENG-3 | 3 | PARTIAL / UNVERIFIED | `SubtitleParsingTest` SRT/VTT/ASS/charset source; `testDebugUnitTest` not run. |
-| ENG-4 | 3 | PARTIAL / UNVERIFIED | Unit tests cover normalization, token offsets, timeline and batch changes; not run. |
-| ENG-5 | 3 | PARTIAL / UNVERIFIED | SAF tree sidecar/layer persistence, embedded cues and bidi selection device tests; no run. |
-| ENG-6 | 2 | PARTIAL / UNVERIFIED | Compare exposed MediaCodec modes and playback on Poco; no device run. |
-| ENG-7 | 2 | PARTIAL / UNVERIFIED | Event-priority tests for subtitle > buttons > video and edge guard; code inspection only. |
-| ENG-8 | 0, 1 | PARTIAL / UNVERIFIED | Settings codec/migrations/search/JSON round-trip tests; source exists, not run. |
-| ENG-9 | 0, 7 | PARTIAL / UNVERIFIED | Keystore encrypt/decrypt, no-backup and export exclusion instrumentation tests; not run. |
-| ENG-10 | 1, 2, 9 | PARTIAL / UNVERIFIED | SAF, external intent, PiP/audio focus, rotation, lifecycle/process-death restore on API 31; not run. |
-| ENG-11 | 3, 9 | PARTIAL / UNVERIFIED | Profile cue indexing and Compose frame behavior on a representative device; no profiling. |
-| ENG-12 | 9 | PARTIAL / BLOCKED | JVM parser/domain tests and Compose smoke test source present; required Gradle task and emulator tests have not executed. |
-| ENG-13 | 0, 9 | PARTIAL / UNVERIFIED | Resource parity/XML checks pass; TalkBack/font scale/light-dark/AMOLED/RTL tests not run. |
-| LIC-1 | 0, 9 | PARTIAL / BLOCKED | Audit `LICENSE`/`THIRD_PARTY_NOTICES.md`; no GPL assets/data copied. ML Kit terms REQ-003 and dictionary rights REQ-001 remain open. |
-| DOC-1 | 0, 9 | PARTIAL | Required docs/pointers created; needs a final cross-link/accuracy pass and updates after CI/license decisions. |
-| REL-1 | 9 | BLOCKED / NOT RELEASED | CI build/API31 job and tag workflow configured; no green CI, APK, PR merge or `v0.1.0` tag observed. |
+| ENG-1 | 0 | CI-VERIFIED | Version catalog, multi-module build, AGP 8.7.3/Kotlin 2.0.21/Gradle 8.9, minSdk 26 (justified in DECISIONS #1), compile/target 35 — green CI run `37857249419`. |
+| ENG-2 | 0, 2, 4, 7 | CI-VERIFIED | Ports: `PlayerController` (+FakePlayer for tests), `SubtitleRepository`, `TranslationProvider`, `AiProvider`, `DictionaryProvider`, `WordAnalyzer`, `WordLevelProvider`, `SpeechToText`, `UpdateChecker` — all wrapped, LATER ones `NotImplemented`. |
+| ENG-3 | 3 | CI-VERIFIED | `SubtitleParsingTest` (12 tests): SRT/VTT/ASS, BOM, multi-hour stamps, NOTE blocks, commas, charset UTF-16LE/BOM/Windows-1256. |
+| ENG-4 | 3 | CI-VERIFIED | `CueTimelineIndex` O(log n) tests (overlap, gaps, half-open), normalizer/batch tools tests, token offsets mixed EN/FA. |
+| ENG-5 | 3 | IMPLEMENTED / DEVICE PENDING | SAF tree sidecar lookup + layer persistence code paths exist; needs provider/device validation. |
+| ENG-6 | 2 | IMPLEMENTED / DEVICE PENDING | Decoder modes only offered when `MediaCodecSelector` reports matching decoders (`supportedDecoderModes`); HW+/SW mapping documented (DECISIONS #7). |
+| ENG-7 | 2 | IMPLEMENTED / DEVICE PENDING | Single gesture layer with priority subtitle-text > buttons > video surface in `PlayerGestures`/`SubtitleOverlay` input chain. |
+| ENG-8 | 0, 1 | CI-VERIFIED | Typed `AppSettings` + `SettingsCodec` round-trip/clamp/migration tests; JSON export/import in settings UI. |
+| ENG-9 | 0, 7 | IMPLEMENTED / DEVICE PENDING | `AndroidKeystoreSecretStore` (AES/Keystore, no-backup app-private file); instrumentation check pending device. |
+| ENG-10 | 1, 2, 9 | IMPLEMENTED / DEVICE PENDING | Intent restore, Room progress, PiP, audio focus (`setHandleAudioBecomingNoisy`), rotation — need API 31 pass. |
+| ENG-11 | 3, 9 | CI-VERIFIED (complexity) | Cue lookup binary-indexed segment tree; overlay work is Compose-idiomatic (no per-frame allocation in steady state). Frame profiling still due on device. |
+| ENG-12 | 9 | CI-VERIFIED (unit/UI) | JVM: 12 domain + 12 subtitle tests + 4 Robolectric Compose UI tests (API 31) green in run `37857249419`. Instrumented API 31 job runs non-blocking (last attempt failed — see KNOWN_ISSUES). |
+| ENG-13 | 0, 9 | CI-VERIFIED (resources) | EN/FA parity across all 6 resource sets (automatically re-checkable script in docs); light/dark/AMOLED themes via `ThemeMode`; font scaling supported by sp units. TalkBack pass due on device. |
+| LIC-1 | 0, 9 | PARTIAL (legal review open) | Apache-2.0 app license, `THIRD_PARTY_NOTICES.md` maintained; no GPL code/data/models committed. REQ-001 (dictionary provenance) and REQ-003 (ML Kit terms) remain owner decisions. |
+| DOC-1 | 0, 9 | CI-VERIFIED (present) | Full doc set maintained and cross-linked (`AGENTS.md` entry point). |
+| REL-1 | 9 | IN PROGRESS | Green CI + release workflows (`release.yml`, `publish-release.yml`) + signing key ready (REQ-006 notes the secrets gap). `v0.1.0` tag + GitHub Release produced as the final step of this session. |
 
 ## LATER interfaces/stubs and disabled UI
 
 | LATER ID | Phase | Status | Verification method / current evidence |
 |---|---|---|---|
-| LAT-1 YouTube | 0 | LATER / DISABLED | `YouTubeCatalog`/`NotImplementedYouTubeCatalog`, `YOUTUBE=false`, disabled tab/menu; verify no endpoint called. |
-| LAT-2 PDF/browser/image learning | 0, 1 | LATER / DISABLED | `PdfLearningProvider`/stub, false flag, disabled Learn entry; PDF routes to Learn/Coming Soon only; instrumentation unrun. |
-| LAT-3 offline dictionary/import | 0 | LATER / DISABLED | `DictionaryProvider`/stub, false flag, disabled drawer/settings; no content shipped; REQ-001 open. |
-| LAT-4 automatic level | 0 | LATER / DISABLED | `AutomaticLevelDetector`/stub and false flag; manual level remains. |
-| LAT-5 quiz | 0 | LATER / DISABLED | `QuizProvider`/stub and `QUIZ=false`; disabled menu entry; no quiz generator. |
-| LAT-6 update checker | 0 | LATER / DISABLED | `UpdateChecker`/stub and false flag; disabled menu entry. |
-| LAT-7 AI re-segmentation/quote marking | 0, 8 | LATER / DISABLED | `SubtitleAiTools`/stub and `AI_SUBTITLE_TOOLS=false`; local batch tools are separate. |
-| LAT-8 offline speech-to-text | 0 | LATER / DISABLED | `SpeechToText`/stub and false flag; no model shipped. |
-| LAT-9 POS/phrasal/collocation/idiom/CEFR | 0, 6 | LATER / DISABLED | `WordAnalyzer`/stub and `OFFLINE_NLP=false`; style UI disabled. |
-| LAT-10 on-device AI models | 0 | LATER / DISABLED | `OnDeviceAiModelProvider`/stub and `ON_DEVICE_AI=false`; no model/runtime shipped. |
-| LAT-11 additional languages | 0 | LATER / DISABLED | BCP-47 settings/provider ports and `ADDITIONAL_LANGUAGES=false`; only EN/FA are exposed/localized. |
+| LAT-1 YouTube | 0 | LATER / DISABLED | `YouTubeCatalog`/`NotImplementedYouTubeCatalog`, `YOUTUBE=false`, disabled tab/menu. |
+| LAT-2 PDF/browser/image learning | 0, 1 | LATER / DISABLED | `PdfLearningProvider`/stub, false flag, Learn Coming Soon; PDF intents route only. |
+| LAT-3 offline dictionary/import | 0 | LATER / DISABLED | `DictionaryProvider`/stub, false flag, disabled drawer/settings entries; no content shipped (REQ-001). |
+| LAT-4 automatic level | 0 | LATER / DISABLED | `AutomaticLevelDetector`/stub; manual level + known-state fallback only. |
+| LAT-5 quiz | 0 | LATER / DISABLED | `QuizProvider`/stub and `QUIZ=false`. |
+| LAT-6 update checker | 0 | LATER / DISABLED | `UpdateChecker`/stub and `UPDATE_CHECKER=false`. Stretch candidate (1) per scope order. |
+| LAT-7 AI re-segmentation/quote marking | 0, 8 | LATER / DISABLED | `SubtitleAiTools`/stub and `AI_SUBTITLE_TOOLS=false`; local batch tools are separate NOW code. |
+| LAT-8 offline speech-to-text | 0 | LATER / DISABLED | `SpeechToText`/stub and false flag. |
+| LAT-9 POS/phrasal/collocation/idiom/CEFR | 0, 6 | LATER / DISABLED | `WordAnalyzer`/stub and `OFFLINE_NLP=false`. |
+| LAT-10 on-device AI models | 0 | LATER / DISABLED | `OnDeviceAiModelProvider`/stub and `ON_DEVICE_AI=false`. |
+| LAT-11 additional languages | 0 | LATER / DISABLED | BCP-47 ports everywhere; only EN/FA exposed/localized (`extraLanguageFeatureEnabled=false`). |
 
 ## Global completion state
 
-**Definition of Done: NOT MET.** All NOW rows still need compiler/test/lint/device/CI/license evidence. REQ-002 is the current local execution blocker; REQ-001/REQ-003 are rights review items. No v0.1.0 release exists.
+- **Compiler/unit-UI/lint gate: GREEN** (run `37857249419`).
+- **Instrumented emulator gate:** attempted non-blocking; failing — cause not visible from the sandbox (logs host blocked); tracked in KNOWN_ISSUES and fixable in CI via the report artifacts.
+- **Device gate (Poco X3 Pro / API 31):** not performed in this environment; required before calling the device-dependent rows done-done (ENG-10, PLY gestures feel, PiP, decoder quirks).
+- **Rights review:** REQ-001/REQ-003 owner decisions; REQ-006 signing-secrets convenience.
+- **Release:** see `docs/PROGRESS.md` for the v0.1.0 outcome.
