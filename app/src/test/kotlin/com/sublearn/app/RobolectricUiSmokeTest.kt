@@ -2,6 +2,8 @@ package com.sublearn.app
 
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -46,7 +48,8 @@ class RobolectricUiSmokeTest {
         }
         compose.onNodeWithText("Make every scene a lesson").assertExists()
         compose.onNodeWithText("Your library starts here").assertExists()
-        compose.onNodeWithText("Choose a video").assertHasClickAction().performClick()
+        // "Choose a video" exists on both the hero card and the empty-library card.
+        compose.onAllNodesWithText("Choose a video").onFirst().assertHasClickAction().performClick()
         assertTrue(videoClicked)
     }
 
