@@ -348,10 +348,10 @@ class Media3PlayerController(context: Context) : PlayerController {
 
         override fun onCues(cueGroup: CueGroup) {
             val text = cueGroup.cues.mapNotNull { it.text?.toString()?.takeIf(String::isNotBlank) }.joinToString(" ")
-            val time = (cueGroup.presentationTimeUs / 1_000L).coerceAtLeast(0)
+            val timeMs: Long = (cueGroup.presentationTimeUs / 1_000L).coerceAtLeast(0L)
             val cue = text.takeIf(String::isNotBlank)?.let { value ->
                 val normalized = SubtitleNormalizer.cleanText(value)
-                Cue(cueIds.getAndIncrement(), time, time + 60_000, normalized, SubtitleNormalizer.tokens(normalized), "embedded")
+                Cue(cueIds.getAndIncrement(), timeMs, timeMs + 60_000L, normalized, SubtitleNormalizer.tokens(normalized), "embedded")
             }
             mutableSnapshot.update { it.copy(embeddedSubtitleCue = cue) }
         }

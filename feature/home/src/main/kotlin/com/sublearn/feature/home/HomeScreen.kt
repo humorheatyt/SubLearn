@@ -225,7 +225,11 @@ private fun DirectUrlDialog(onDismiss: () -> Unit, onOpen: (String) -> Unit) {
             TextButton(onClick = {
                 val normalized = value.trim()
                 val uri = runCatching { Uri.parse(normalized) }.getOrNull()
-                if (uri?.scheme in setOf("http", "https") && !uri.host.isNullOrBlank()) onOpen(normalized) else invalid = true
+                val isValidHttpUrl = uri?.let { parsed ->
+                    val scheme = parsed.scheme
+                    (scheme == "http" || scheme == "https") && !parsed.host.isNullOrBlank()
+                } == true
+                if (isValidHttpUrl) onOpen(normalized) else invalid = true
             }) { Text(stringResource(R.string.home_url_open)) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.home_url_cancel)) } },
