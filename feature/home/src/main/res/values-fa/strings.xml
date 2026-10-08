@@ -1,0 +1,25 @@
+<resources>
+    <string name="home_eyebrow">ساب‌لِرن • انگلیسی در بافت</string>
+    <string name="home_title">هر صحنه را به درسی تازه تبدیل کن</string>
+    <string name="home_subtitle">ویدیوهای محلی را با دو لایه زیرنویس ببین، در بافت ترجمه کن و واژه‌های ماندگار را نگه دار.</string>
+    <string name="home_open_video">انتخاب ویدیو</string>
+    <string name="home_open_folder">مرور پوشه</string>
+    <string name="home_folder_title">ویدیوهای این پوشه</string>
+    <string name="home_folder_empty">فایل ویدیویی پشتیبانی‌شده‌ای در این پوشه پیدا نشد.</string>
+    <string name="home_folder_permission">برای فهرست‌کردن ویدیوها و یافتن زیرنویس‌های هم‌نام، دسترسی پوشه لازم است.</string>
+    <string name="home_open_url">باز کردن نشانی ویدیو</string>
+    <string name="home_recent">تماشای اخیر</string>
+    <string name="home_continue">ادامه تماشا</string>
+    <string name="home_empty_title">کتابخانه‌ات از اینجا آغاز می‌شود</string>
+    <string name="home_empty_body">یک ویدیوی محلی انتخاب کن یا پیوند مستقیم پخش را وارد کن. این فهرست هرگز با محتوای نمایشی پر نمی‌شود.</string>
+    <string name="home_duration">%1$s تماشا شده</string>
+    <string name="home_remove">حذف از اخیرها</string>
+    <string name="home_url_title">باز کردن پیوند مستقیم ویدیو</string>
+    <string name="home_url_hint">https://example.com/video.mp4</string>
+    <string name="home_url_open">باز کردن</string>
+    <string name="home_url_cancel">لغو</string>
+    <string name="home_url_invalid">یک نشانی معتبر ویدیویی با HTTP یا HTTPS وارد کنید.</string>
+    <string name="home_no_subtitle">می‌توانید زیرنویس را در پخش‌کننده اضافه کنید</string>
+    <string name="home_learning_mode">حالت یادگیری</string>
+    <string name="home_settings">تنظیمات</string>
+</resources>

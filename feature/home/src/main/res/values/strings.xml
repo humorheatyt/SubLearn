@@ -1,0 +1,25 @@
+<resources>
+    <string name="home_eyebrow">SUBLEARN • ENGLISH, IN CONTEXT</string>
+    <string name="home_title">Make every scene a lesson</string>
+    <string name="home_subtitle">Watch local video with two subtitle layers, translate in context, and keep the words worth remembering.</string>
+    <string name="home_open_video">Choose a video</string>
+    <string name="home_open_folder">Browse a folder</string>
+    <string name="home_folder_title">Videos in this folder</string>
+    <string name="home_folder_empty">No supported video files were found in this folder.</string>
+    <string name="home_folder_permission">Folder access is needed to list videos and locate matching subtitles.</string>
+    <string name="home_open_url">Open a video URL</string>
+    <string name="home_recent">Recently watched</string>
+    <string name="home_continue">Continue watching</string>
+    <string name="home_empty_title">Your library starts here</string>
+    <string name="home_empty_body">Choose a local video or paste a direct stream link. SubLearn never fills this list with sample content.</string>
+    <string name="home_duration">%1$s watched</string>
+    <string name="home_remove">Remove from recent</string>
+    <string name="home_url_title">Open a direct video link</string>
+    <string name="home_url_hint">https://example.com/video.mp4</string>
+    <string name="home_url_open">Open</string>
+    <string name="home_url_cancel">Cancel</string>
+    <string name="home_url_invalid">Enter a valid HTTP or HTTPS video URL.</string>
+    <string name="home_no_subtitle">Subtitles can be added in the player</string>
+    <string name="home_learning_mode">Learning mode</string>
+    <string name="home_settings">Settings</string>
+</resources>

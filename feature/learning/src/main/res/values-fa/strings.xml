@@ -1,0 +1,16 @@
+<resources>
+    <string name="words_title">واژه‌های من</string>
+    <string name="words_search">جست‌وجوی واژه‌های ذخیره‌شده</string>
+    <string name="words_empty_title">واژه‌های نگه‌داشته‌شده اینجا می‌مانند</string>
+    <string name="words_empty_body">روی زیرنویس آموزشی بزن، ترجمه‌اش کن و واژه یا عبارت مفید را ذخیره کن.</string>
+    <string name="words_known">این را بلدم</string>
+    <string name="words_remove">حذف واژه</string>
+    <string name="words_context">از این صحنه</string>
+    <string name="words_saved">در واژه‌های من ذخیره شد</string>
+    <string name="words_bookmark">ذخیره واژه</string>
+    <string name="words_translate">ترجمه</string>
+    <string name="words_full_details">جزئیات کامل</string>
+    <string name="words_full_details_coming">جزئیات کامل · به‌زودی</string>
+    <string name="words_learning_popup">واژه‌های تازه در این صحنه</string>
+    <string name="words_word_count">%1$d واژه ذخیره‌شده</string>
+</resources>

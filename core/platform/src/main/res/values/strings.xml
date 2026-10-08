@@ -1,0 +1,7 @@
+<resources>
+    <string name="media3_language_audio">%1$s audio</string>
+    <string name="media3_language_subtitle">%1$s subtitles</string>
+    <string name="media3_audio_track">Audio %1$d</string>
+    <string name="media3_subtitle_track">Subtitle %1$d</string>
+    <string name="media3_playback_error">Playback failed (%1$s). Check the format or network connection.</string>
+</resources>

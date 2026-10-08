@@ -1,0 +1,12 @@
+<resources>
+    <style name="Theme.SubLearn" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowBackground">#15161B</item>
+        <item name="android:colorAccent">#5556B5</item>
+    </style>
+</resources>

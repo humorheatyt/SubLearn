@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">SubLearn</string>
+    <string name="app_home">خانه</string>
+    <string name="app_learn">یادگیری</string>
+    <string name="app_youtube">یوتیوب</string>
+    <string name="app_dictionary">واژه‌نامه</string>
+    <string name="app_my_words">واژه‌های من</string>
+    <string name="app_level">سطح</string>
+    <string name="app_quiz">آزمون</string>
+    <string name="app_updates">بررسی به‌روزرسانی</string>
+    <string name="app_settings">تنظیمات</string>
+    <string name="app_menu">بازکردن منوی پیمایش</string>
+    <string name="app_coming_soon">به‌زودی</string>
+    <string name="app_coming_title">در این نسخه موجود نیست</string>
+    <string name="app_coming_body">این قابلیت در نسخه ۰٫۱٫۰ عمداً غیرفعال است. SubLearn بدون داده نمایشی یا سرویس شبکه پنهان، آفلاین‌محور می‌ماند.</string>
+    <string name="app_level_title">سطح یادگیری</string>
+    <string name="app_level_body">یک سطح دستی انتخاب کنید. تا زمانی که فهرست مجاز CEFR در دسترس نباشد، یادآورها روی واژه‌هایی تمرکز می‌کنند که بلدبودنشان را علامت نزده‌اید.</string>
+    <string name="app_learn_title">با ویدیوهای خود یاد بگیرید</string>
+    <string name="app_pdf_learning">یادگیری با PDF، وب‌گردی و تصویر · به‌زودی</string>
+    <string name="app_pdf_opened">یادگیری با PDF برنامه‌ریزی شده، اما هنوز در دسترس نیست.</string>
+    <string name="app_learn_body">حالت یادگیری هنگام پخش ویدیوی محلی، یادآورهای ملایم واژه می‌افزاید. از خانه ویدیوی انگلیسی باز کنید، زیرنویس بیفزایید و واژه‌های ذخیره‌شده را در واژه‌های من مرور کنید.</string>
+    <string name="app_learning_mode">حالت یادگیری</string>
+    <string name="app_entertainment_mode">حالت سرگرمی</string>
+    <string name="app_continue_learning">ادامه یادگیری</string>
+    <string name="app_no_recent">برای شروع، ویدیویی محلی از خانه باز کنید.</string>
+    <string name="app_open_words">بازکردن واژه‌های من</string>
+    <string name="app_level_assumption">تا زمان بررسی مجوز، داده سطح همراه برنامه نیست.</string>
+    <string name="app_export_success">تنظیمات صادر شد.</string>
+    <string name="app_export_error">صدور تنظیمات انجام نشد.</string>
+    <string name="app_import_success">تنظیمات وارد شد.</string>
+    <string name="app_import_error">واردکردن تنظیمات انجام نشد. ساختار JSON را بررسی کنید.</string>
+    <string name="app_settings_save_error">ذخیره تنظیمات انجام نشد. دوباره تلاش کنید.</string>
+    <string name="app_external_error">بازکردن مورد اشتراک‌گذاری‌شده ناموفق بود.</string>
+    <string name="app_settings_action">بازکردن تنظیمات</string>
+    <string name="app_done">انجام شد</string>
+</resources>
