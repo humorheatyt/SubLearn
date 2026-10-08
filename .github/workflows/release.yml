@@ -52,15 +52,32 @@ jobs:
           out="$RUNNER_TEMP/release-assets"
           mkdir -p "$out"
           for abi in arm64-v8a armeabi-v7a x86_64 universal; do
-            src="app/build/outputs/apk/release/app-${abi}-release.apk"
-            if [ ! -f "$src" ]; then
-              echo "::error::Missing expected APK: $src"
+            src=""
+            for candidate in "app/build/outputs/apk/release/app-${abi}-release.apk" "app/build/outputs/apk/release/app-${abi}-release-unsigned.apk"; do
+              if [ -f "$candidate" ]; then src="$candidate"; break; fi
+            done
+            if [ -z "$src" ]; then
+              echo "::error::Missing expected APK for ABI ${abi}"
               ls -R app/build/outputs/apk/release || true
               exit 1
             fi
             cp "$src" "$out/SubLearn-${version}-${abi}.apk"
           done
           (cd "$out" && sha256sum SubLearn-*.apk > SHA256SUMS.txt)
-          gh release create "$GITHUB_REF_NAME" "$out"/* \
+          echo "SUBLEARN_RELEASE_ASSETS=$out" >> "$GITHUB_ENV"
+      - name: Upload unsigned APKs as workflow artifacts
+        if: ${{ env.SUBLEARN_KEYSTORE_FILE == '' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: sublearn-unsigned-release-apks
+          path: ${{ env.SUBLEARN_RELEASE_ASSETS }}/*
+          if-no-files-found: error
+          retention-days: 30
+      - name: Create GitHub Release with APKs and checksums
+        if: ${{ env.SUBLEARN_KEYSTORE_FILE != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "$SUBLEARN_RELEASE_ASSETS"/* \
             --title "SubLearn $GITHUB_REF_NAME" \
             --notes-file CHANGELOG.md
