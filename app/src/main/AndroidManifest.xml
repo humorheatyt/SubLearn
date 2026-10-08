@@ -22,7 +22,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter>
+            <!-- Matches any video document handed over by SAF/other apps (content:// URIs have
+                 no fixed host), so the AppLinkUrlError hint about declaring a URL does not apply. -->
+            <intent-filter tools:ignore="AppLinkUrlError">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="video/*" />
