@@ -16,7 +16,7 @@ subprojects {
             events("failed")
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
             showCauses = true
-            showStackFrames = true
+            showStackTraces = true
         }
     }
 }
