@@ -12,7 +12,7 @@ jobs:
   release:
     name: Verify and publish APK
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - name: Check out source
         uses: actions/checkout@v7
@@ -23,14 +23,44 @@ jobs:
           java-version: '17'
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
-      - name: Build and verify
-        run: ./gradlew --no-daemon assembleDebug testDebugUnitTest lint
-      - name: Create GitHub Release with APK and checksum
+      - name: Reconstruct release keystore
+        env:
+          SUBLEARN_KEYSTORE_BASE64: ${{ secrets.SUBLEARN_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$SUBLEARN_KEYSTORE_BASE64" ]; then
+            printf '%s' "$SUBLEARN_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/sublearn-release.jks"
+            echo "SUBLEARN_KEYSTORE_FILE=$RUNNER_TEMP/sublearn-release.jks" >> "$GITHUB_ENV"
+          else
+            echo "::warning::SUBLEARN_KEYSTORE_BASE64 secret is missing; APKs will be unsigned."
+          fi
+      - name: Build, test and lint
+        env:
+          SUBLEARN_KEYSTORE_PASSWORD: ${{ secrets.SUBLEARN_KEYSTORE_PASSWORD }}
+          SUBLEARN_KEY_ALIAS: ${{ secrets.SUBLEARN_KEY_ALIAS }}
+          SUBLEARN_KEY_PASSWORD: ${{ secrets.SUBLEARN_KEY_PASSWORD }}
+        run: |
+          ./gradlew --no-daemon -PsublearnReleaseSplits \
+            assembleRelease testDebugUnitTest \
+            :core:domain:test :core:subtitles:test \
+            lint
+      - name: Collect APKs and checksums
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          apk=app/build/outputs/apk/debug/app-debug.apk
-          sha256sum "$apk" > "$apk.sha256"
-          gh release create "$GITHUB_REF_NAME" "$apk" "$apk.sha256" \
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          out="$RUNNER_TEMP/release-assets"
+          mkdir -p "$out"
+          for abi in arm64-v8a armeabi-v7a x86_64 universal; do
+            src="app/build/outputs/apk/release/app-${abi}-release.apk"
+            if [ ! -f "$src" ]; then
+              echo "::error::Missing expected APK: $src"
+              ls -R app/build/outputs/apk/release || true
+              exit 1
+            fi
+            cp "$src" "$out/SubLearn-${version}-${abi}.apk"
+          done
+          (cd "$out" && sha256sum SubLearn-*.apk > SHA256SUMS.txt)
+          gh release create "$GITHUB_REF_NAME" "$out"/* \
             --title "SubLearn $GITHUB_REF_NAME" \
             --notes-file CHANGELOG.md
