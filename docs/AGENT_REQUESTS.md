@@ -15,11 +15,12 @@ Use this log instead of leaving an unfinished feature silent. Each entry records
 - **Needed:** Gradle 8.9 distribution, JDK 17+, Android SDK/platform 35 and dependency access to Google's/Maven repositories.
 - **Tried/result (three distinct recovery paths):**
   1. **Environment/wrapper repair:** Confirmed `java` and system `gradle` are absent and the checked-out wrapper JAR was missing. Retrieved the official 43,504-byte Gradle 8.9 wrapper JAR from the Gradle `v8.9.0` GitHub repository via the allowed GitHub API. `./gradlew --version` then stopped with `java: not found`.
-  2. **Temporary JDK from an allowed package host:** Installed `jdk4py==21.0.8.2` under `/tmp` (not in Git). With that JDK, the wrapper attempted `https://services.gradle.org/distributions/gradle-8.9-bin.zip` and failed with `SSLHandshakeException` / `EOFException` before receiving the distribution.
+  2. **Temporary Java runtime from an allowed package host:** Installed `jdk4py==21.0.8.2` under `/tmp` (not in Git). With that Java 21 runtime, the wrapper attempted `https://services.gradle.org/distributions/gradle-8.9-bin.zip` and failed with `SSLHandshakeException` / `EOFException` before receiving the distribution.
   3. **Official distribution from GitHub releases:** Queried the Gradle 8.9 release asset through `api.github.com`; the download endpoint responded `302 Found` to `release-assets.githubusercontent.com`, which is outside the sandbox allowlist. No distribution was written to the repository. Re-ran the required Gradle command with the temporary JDK; it failed at the same distribution download.
-- **Additional local checks:** Tree-sitter's Kotlin grammar parsed 33 Kotlin source/test files with no syntax-error nodes; Python XML parsing passed for 13 XML files, and EN/FA string-key parity passed for the feature modules. These are **not** substitutes for Kotlin compilation, lint, unit tests, instrumentation, or device verification.
+- **Additional local checks:** The latest Tree-sitter Kotlin pass parsed 34 Kotlin source/test files with no syntax-error or missing nodes; Python XML parsing passed for all 15 XML files; EN/FA string-key parity passed for app (34), core/platform (5), home (23), player (81), learning (14), and settings (141) keys; the local `R.string` reference scan found no missing keys. These are **not** substitutes for Kotlin compilation, lint, unit tests, instrumentation, or device verification.
+- **CI result:** Both push and pull-request runs reached the `Verify Android project` step and failed; APK upload and dependent Android 12 smoke tests were skipped. The error details could not be retrieved; see REQ-005.
 - **Suspected cause:** Sandbox outbound access is limited to GitHub/API/codeload, npm and PyPI; it excludes Gradle's distribution host, GitHub's release-asset host, Google Maven and Maven Central. Android SDK availability is also unconfirmed.
-- **Next step:** Push the branch and use the configured GitHub Actions workflow, which has normal runner network access, as the first real Gradle verification. Fix all observed CI failures; if CI cannot run, use a machine with JDK 17, Gradle 8.9, Android SDK 35, and Google/Maven repository access.
+- **Next step:** Use the CI diagnostic annotation added to `.github/workflows/android.yml` on the next run to expose the bounded Gradle failure tail, then fix every compiler/test/lint failure. If the workflow cannot provide diagnostics, use a machine with JDK 17, Gradle 8.9, Android SDK 35, and Google/Maven repository access.
 - **Severity:** Blocking for acceptance, release, merge, and any claim that tests/lint/build passed.
 
 ## REQ-003 — Google ML Kit Translation license terms
@@ -35,5 +36,19 @@ Use this log instead of leaving an unfinished feature silent. Each entry records
 - **Needed:** Instrumented API 31 smoke-test result and hands-on verification on a Poco X3 Pro (or equivalent Android 12 device), including codec/stream/SAF/PiP behavior.
 - **Tried/result:** Added an API 31 emulator workflow and instrumented Compose smoke tests using a test-only `FakePlayer`. No Android emulator/device is available in the local sandbox; no test has executed yet.
 - **Suspected cause:** Local environment has no Android SDK/emulator and cannot fetch the Gradle distribution.
-- **Next step:** Inspect the GitHub Actions emulator result after push, then perform a device pass for OEM decoder quirks, PiP, orientation, volume/brightness, and real SAF permissions before release.
+- **Next step:** The emulator job was skipped because the Gradle verify job failed. After Gradle verification succeeds, inspect the API 31 emulator workflow and then perform a device pass for OEM decoder quirks, PiP, orientation, volume/brightness, and real SAF permissions before release.
 - **Severity:** High for the requested device compatibility claim; release remains unverified.
+
+## REQ-005 — GitHub Actions Gradle failure logs inaccessible from sandbox
+- **Phase/task:** Phase 9 verification; diagnose failed `Verify Android project` step on PR #1.
+- **Needed:** Gradle output from the CI command to identify and repair the build/test/lint failure.
+- **Run/job IDs:** Push run `37822587380`, job `113467143062`; pull-request run `37822600898`, job `113467188179`; both ran commit `b4a8ed3ec5783214a71ba90051e8438d7b988576`. In both, JDK/Gradle setup succeeded, `Verify Android project` failed, and APK upload plus the dependent Android 12 job were skipped.
+- **Tried/result (four retrieval paths):**
+  1. `gh run view 37822600898 --log-failed` and the push-run equivalent failed with EOF while downloading the log ZIP from `results-receiver.actions.githubusercontent.com`.
+  2. GitHub Actions jobs REST API returned step conclusions only; check-run annotations contained only `Process completed with exit code 1`.
+  3. `gh api repos/humorheatyt/SubLearn/actions/jobs/113467188179/logs` also followed the signed-log redirect and failed with EOF.
+  4. Fetching the GitHub job page returned “Sign in to view logs” and truncated step output; it exposed no diagnostic lines.
+- **Mitigation implemented:** `.github/workflows/android.yml` now emits the last 30 lines (bounded to 5,000 characters) as a check annotation when Gradle fails. YAML parsing, `bash -n`, and a simulated failing command verified that the annotation is emitted and the step preserves a non-zero exit code. This instrumentation has not yet run in GitHub Actions.
+- **Suspected cause:** The Actions log endpoint redirects to `results-receiver.actions.githubusercontent.com`, a host outside this sandbox's outbound allowlist; the authenticated CLI cannot download that host, and the public HTML fetch is not authenticated for logs.
+- **Next step:** Push the instrumentation on `arena/4386d633-sublearn`; retrieve the resulting check-run annotation through `api.github.com`, diagnose/fix the actual Gradle error, and rerun the workflow. Keep PR #1 draft and unmerged until all checks pass.
+- **Severity:** Blocking for compiler/test/lint diagnosis and merge; the PR remains explicitly unverified.

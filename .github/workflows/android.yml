@@ -23,18 +23,34 @@ jobs:
     timeout-minutes: 35
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
       - name: Verify Android project
-        run: ./gradlew --no-daemon assembleDebug testDebugUnitTest lint
+        shell: bash
+        run: |
+          set +e
+          ./gradlew --no-daemon --stacktrace assembleDebug testDebugUnitTest lint 2>&1 | tee "$RUNNER_TEMP/gradle-verification.log"
+          gradle_exit=${PIPESTATUS[0]}
+          if (( gradle_exit != 0 )); then
+            python3 - "$RUNNER_TEMP/gradle-verification.log" <<'PY'
+          import pathlib
+          import sys
+
+          log = pathlib.Path(sys.argv[1]).read_text(errors="replace")
+          details = "\n".join(log.splitlines()[-30:])[-5000:] or "Gradle exited without diagnostic output."
+          encoded = details.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print(f"::error title=Gradle verification failure::{encoded}")
+          PY
+            exit "$gradle_exit"
+          fi
       - name: Upload debug APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sublearn-debug-apk-${{ github.sha }}
           path: app/build/outputs/apk/debug/app-debug.apk
@@ -48,14 +64,14 @@ jobs:
     needs: verify
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
       - name: Run instrumented smoke tests on API 31
         uses: reactivecircus/android-emulator-runner@v2
         with:

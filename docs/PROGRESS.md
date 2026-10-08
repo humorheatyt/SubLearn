@@ -1,6 +1,6 @@
 # Progress
 
-**Last updated:** 2026-10-08. **Definition of Done: NOT MET.** This is an unverified pre-release implementation on `arena/4386d633-sublearn`; no build, unit test, lint, emulator/device run, CI result, APK artifact, merge, or `v0.1.0` tag has been observed.
+**Last updated:** 2026-10-08. **Definition of Done: NOT MET.** This is an unverified pre-release implementation on `arena/4386d633-sublearn`. The draft PR is [#1](https://github.com/humorheatyt/SubLearn/pull/1). No successful build, unit test, lint, APK artifact, emulator/device run, merge, or `v0.1.0` tag has been observed; the first two Android CI runs failed in Gradle verification and their log host was inaccessible from this sandbox (REQ-005).
 
 ## Goal
 
@@ -24,7 +24,8 @@ The above is an implementation inventory, not a claim that the app runs. Check `
 
 - Python `xml.etree.ElementTree` parsed all 15 repository XML files (resources/manifests) with zero errors.
 - Tree-sitter Kotlin grammar parsed all 34 Kotlin source/test files with zero syntax-error or missing nodes. EN/FA parity passed for app (34 keys), core/platform (5), home (23), player (81), learning (14), and settings (141); the local `R.string` reference scan found zero missing keys. These are static checks only: Tree-sitter cannot type-check Android/Compose symbols or substitute for Android resource linking.
-- `./gradlew assembleDebug testDebugUnitTest lint` was attempted with a temporary Java 21 runtime; the wrapper failed before configuration because the TLS handshake to `services.gradle.org` failed while downloading Gradle 8.9. Running without Java also fails immediately (`java: not found`). No Gradle task ran.
+- `./gradlew assembleDebug testDebugUnitTest lint` was attempted locally with a temporary Java 21 runtime; the wrapper failed before configuration because the TLS handshake to `services.gradle.org` failed while downloading Gradle 8.9. Running without Java also fails immediately (`java: not found`). No local Gradle task ran.
+- GitHub Actions runs `37822587380` (push) and `37822600898` (PR #1), for commit `b4a8ed3`, both completed with `Verify Android project` failing; APK upload and dependent Android 12 smoke tests were skipped. The actual Gradle diagnostic could not be retrieved because the logs redirect to an inaccessible host; see `REQ-005`. A bounded failure annotation was added to the workflow and awaits the next run.
 
 ## Build recovery attempts and current blockers
 
@@ -34,7 +35,7 @@ See detailed evidence in `AGENT_REQUESTS.md`:
 2. Installed a temporary Java 21 runtime under `/tmp` from PyPI (`jdk4py`) so the wrapper could start; it then failed with `SSLHandshakeException` while downloading Gradle 8.9 from `services.gradle.org`.
 3. Queried the official GitHub release distribution through the allowed GitHub API; its asset redirects to the blocked `release-assets.githubusercontent.com` host. The required Gradle command still reaches no Gradle task.
 
-No Android SDK/emulator result is available. The Github Actions build and API 31 smoke workflow have been authored but not pushed/run. The CI result is the next real compiler/test gate.
+No Android SDK/emulator result is available. The GitHub Actions build and API 31 smoke workflow were pushed and ran, but Gradle verification failed in both initial runs; the smoke job was skipped. Workflow diagnostics now surface a bounded failure tail through the check annotation, to be validated on the next run.
 
 ## Open license/rights review
 
@@ -44,9 +45,9 @@ No Android SDK/emulator result is available. The Github Actions build and API 31
 
 ## What remains
 
-1. Static XML/Kotlin-syntax/EN-FA checks have been rerun and passed; compiler/resource linking and Android/Compose API signatures remain unverified until Gradle runs.
-2. Push only `arena/4386d633-sublearn`, open a PR (draft if the quality gate is still red), and inspect the GitHub Actions logs. Fix every compile/test/lint/instrumentation failure; do not mark any checklist row verified without evidence.
-3. Add or strengthen tests for settings normalization/migration, repository/Room schema, SAF sidecars, all gestures/translation pause-resume, repeat cancellation, and RTL; run `./gradlew assembleDebug testDebugUnitTest lint` and `connectedDebugAndroidTest` in CI.
+1. Commit and push the workflow diagnostic annotation and CI failure record on `arena/4386d633-sublearn`; inspect the next check-run annotation via the GitHub API and fix every actual compile/test/lint failure.
+2. Keep PR #1 in draft while CI is red or inconclusive; do not mark any checklist row verified without evidence.
+3. Add or strengthen tests for settings normalization/migration, repository/Room schema, SAF sidecars, all gestures/translation pause-resume, repeat cancellation, and RTL; rerun `./gradlew assembleDebug testDebugUnitTest lint` and `connectedDebugAndroidTest` in CI.
 4. On an API 31 emulator and Poco X3 Pro (or equivalent), verify local and HTTP playback, hardware/software decoder availability, embedded/external subtitle behavior, folder/sidecar permissions, audio focus, PiP, lifecycle/process restore, orientation, brightness/volume, EN/FA and accessibility.
 5. Resolve ML Kit terms and complete the transitive dependency/SBOM review; keep REQ-001 data excluded.
 6. Update every affected checklist/doc, require green CI, produce/review debug APK + checksum, then consider merge and the `v0.1.0` release/tag. Until then, no Definition of Done claim.
