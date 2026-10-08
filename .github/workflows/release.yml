@@ -1,4 +1,4 @@
-name: Android debug release
+name: Android release
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   release:
-    name: Verify and publish APK
+    name: Verify and build release APKs
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
@@ -31,7 +31,7 @@ jobs:
             printf '%s' "$SUBLEARN_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/sublearn-release.jks"
             echo "SUBLEARN_KEYSTORE_FILE=$RUNNER_TEMP/sublearn-release.jks" >> "$GITHUB_ENV"
           else
-            echo "::warning::SUBLEARN_KEYSTORE_BASE64 secret is missing; APKs will be unsigned."
+            echo "::warning::SUBLEARN_KEYSTORE_BASE64 secret is missing; APKs will be staged unsigned for out-of-band signing."
           fi
       - name: Build, test and lint
         env:
@@ -44,8 +44,6 @@ jobs:
             :core:domain:test :core:subtitles:test \
             lint
       - name: Collect APKs and checksums
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           version="${GITHUB_REF_NAME#v}"
@@ -65,15 +63,7 @@ jobs:
           done
           (cd "$out" && sha256sum SubLearn-*.apk > SHA256SUMS.txt)
           echo "SUBLEARN_RELEASE_ASSETS=$out" >> "$GITHUB_ENV"
-      - name: Upload unsigned APKs as workflow artifacts
-        if: ${{ env.SUBLEARN_KEYSTORE_FILE == '' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: sublearn-unsigned-release-apks
-          path: ${{ env.SUBLEARN_RELEASE_ASSETS }}/*
-          if-no-files-found: error
-          retention-days: 30
-      - name: Create GitHub Release with APKs and checksums
+      - name: Publish release directly (signed in CI)
         if: ${{ env.SUBLEARN_KEYSTORE_FILE != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
@@ -81,3 +71,28 @@ jobs:
           gh release create "$GITHUB_REF_NAME" "$SUBLEARN_RELEASE_ASSETS"/* \
             --title "SubLearn $GITHUB_REF_NAME" \
             --notes-file CHANGELOG.md
+      - name: Stage unsigned APKs for out-of-band signing
+        if: ${{ env.SUBLEARN_KEYSTORE_FILE == '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          staging_branch="release-staging/${GITHUB_REF_NAME}"
+          work="$RUNNER_TEMP/staging"
+          mkdir -p "$work/unsigned"
+          cp "$SUBLEARN_RELEASE_ASSETS"/*.apk "$work/unsigned/"
+          cp "$SUBLEARN_RELEASE_ASSETS"/SHA256SUMS.txt "$work/unsigned/"
+          cat > "$work/MANIFEST.txt" <<EOF
+          tag=${GITHUB_REF_NAME}
+          commit=${GITHUB_SHA}
+          built=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          signed=no
+          EOF
+          cd "$work"
+          git init -q -b "$staging_branch"
+          git config user.name "SubLearn release bot"
+          git config user.email "release-bot@sublearn.local"
+          git add -A
+          git commit -q -m "release: stage unsigned APKs for ${GITHUB_REF_NAME}"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/${staging_branch}"
+          echo "::notice::Unsigned APKs staged on branch ${staging_branch}. Sign them with the SubLearn release key and push a signed/ directory to trigger publish-release."

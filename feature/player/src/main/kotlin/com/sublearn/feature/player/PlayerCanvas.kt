@@ -101,7 +101,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 import androidx.compose.foundation.gestures.detectTapGestures
 
-@OptIn(UnstableApi::class)
+@androidx.annotation.OptIn(markerClass = [UnstableApi::class])
 @Composable
 internal fun PlayerCanvas(
     controller: PlayerController,

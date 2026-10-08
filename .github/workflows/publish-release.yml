@@ -1,0 +1,65 @@
+name: Publish signed release
+
+# Triggered only by a human/agent push of SIGNED APKs to a release-staging/* branch.
+# (Pushes made by the default GITHUB_TOKEN never trigger workflows, so the unsigned
+# staging push from release.yml does NOT reach this workflow.)
+on:
+  push:
+    branches:
+      - 'release-staging/**'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Verify signatures and publish GitHub Release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out staging branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref }}
+      - name: Collect signed APKs
+        id: collect
+        run: |
+          set -euo pipefail
+          if [ ! -d signed ] || ! ls signed/SubLearn-*.apk >/dev/null 2>&1; then
+            echo "present=no" >> "$GITHUB_OUTPUT"
+            echo "::notice::No signed/ APKs on this staging push; nothing to publish."
+            exit 0
+          fi
+          echo "present=yes" >> "$GITHUB_OUTPUT"
+          tag="${GITHUB_REF_NAME#release-staging/}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          ls -la signed/
+      - name: Verify APK signatures
+        if: steps.collect.outputs.present == 'yes'
+        run: |
+          set -euo pipefail
+          tools_dir="$(ls -d "$ANDROID_HOME"/build-tools/* 2>/dev/null | sort -V | tail -1)"
+          if [ -n "$tools_dir" ] && [ -x "$tools_dir/apksigner" ]; then
+            for apk in signed/SubLearn-*.apk; do
+              "$tools_dir/apksigner" verify --verbose "$apk" | tail -3
+            done
+          else
+            echo "::warning::apksigner not available on runner; skipping signature verification."
+          fi
+      - name: Create GitHub Release
+        if: steps.collect.outputs.present == 'yes'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="${{ steps.collect.outputs.tag }}"
+          (cd signed && sha256sum SubLearn-*.apk > SHA256SUMS.txt)
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" signed/SubLearn-*.apk signed/SHA256SUMS.txt --clobber
+          else
+            gh release create "$tag" signed/SubLearn-*.apk signed/SHA256SUMS.txt \
+              --verify-tag \
+              --title "SubLearn $tag" \
+              --notes "Signed release APKs (arm64-v8a, armeabi-v7a, x86_64, universal). See CHANGELOG.md for details."
+          fi
+          git push origin --delete "${GITHUB_REF_NAME}" || true
