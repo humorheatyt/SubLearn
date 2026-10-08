@@ -1,9 +1,11 @@
 package com.sublearn.feature.player
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -139,6 +142,7 @@ internal fun AudioTracksDialog(tracks: List<SubtitleTrack>, selectedId: String?,
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 internal fun MoreOptionsSheet(
     decoderMode: DecoderMode,
@@ -186,6 +190,7 @@ internal fun MoreOptionsSheet(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun PlaylistDialog(media: List<com.sublearn.domain.RecentMedia>, currentUri: String, onOpen: (MediaRequest) -> Unit, onDismiss: () -> Unit) {
     AlertDialog(

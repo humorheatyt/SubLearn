@@ -190,7 +190,6 @@ private fun Modifier.subtitleTapInput(
             },
             onDrag = { change, amount ->
                 if (layoutMode) {
-                    totalY += amount.y
                     onLayoutDrag(amount.y)
                 } else {
                     endOffset = layout?.getOffsetForPosition(change.position)?.coerceIn(0, cue.text.length)

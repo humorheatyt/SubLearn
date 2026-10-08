@@ -23,5 +23,6 @@ dependencies {
     implementation(libs.bundles.compose)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.media3.common)
     implementation(libs.androidx.media3.ui)
 }
