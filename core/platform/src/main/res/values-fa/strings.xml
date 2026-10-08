@@ -1,0 +1,7 @@
+<resources>
+    <string name="media3_language_audio">صدای %1$s</string>
+    <string name="media3_language_subtitle">زیرنویس %1$s</string>
+    <string name="media3_audio_track">صدای %1$d</string>
+    <string name="media3_subtitle_track">زیرنویس %1$d</string>
+    <string name="media3_playback_error">پخش ناموفق بود (%1$s). قالب فایل یا اتصال شبکه را بررسی کنید.</string>
+</resources>

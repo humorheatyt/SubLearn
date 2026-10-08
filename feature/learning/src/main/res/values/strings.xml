@@ -1,0 +1,16 @@
+<resources>
+    <string name="words_title">My Words</string>
+    <string name="words_search">Search saved words</string>
+    <string name="words_empty_title">Words you keep will live here</string>
+    <string name="words_empty_body">Tap a learning subtitle, translate it, then bookmark a useful word or phrase.</string>
+    <string name="words_known">I know this</string>
+    <string name="words_remove">Remove word</string>
+    <string name="words_context">From this scene</string>
+    <string name="words_saved">Saved to My Words</string>
+    <string name="words_bookmark">Save word</string>
+    <string name="words_translate">Translate</string>
+    <string name="words_full_details">Full details</string>
+    <string name="words_full_details_coming">Full details · Coming soon</string>
+    <string name="words_learning_popup">New words in this scene</string>
+    <string name="words_word_count">%1$d saved</string>
+</resources>
