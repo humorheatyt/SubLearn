@@ -64,7 +64,18 @@ jobs:
               details = "\n".join(excerpts)
           else:
               details = "\n".join(lines[-60:])
-          details = details[-5000:] or "Gradle exited without diagnostic output."
+          # Include every lint Error line from text reports so no error stays hidden.
+          lint_errors = []
+          for report in pathlib.Path(".").glob("**/build/**/lint-results*.txt"):
+              try:
+                  for line in report.read_text(errors="replace").splitlines():
+                      if "Error:" in line:
+                          lint_errors.append(line.strip())
+              except OSError:
+                  pass
+          if lint_errors:
+              details += "\n--- lint errors ---\n" + "\n".join(lint_errors[:40])
+          details = details[-7000:] or "Gradle exited without diagnostic output."
           encoded = details.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
           print(f"::error title=Gradle verification failure::{encoded}")
           PY
