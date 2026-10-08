@@ -48,7 +48,7 @@ jobs:
 
           log = pathlib.Path(sys.argv[1]).read_text(errors="replace")
           lines = log.splitlines()
-          marker = re.compile(r"(?i)(^FAILURE:|^\s*\* What went wrong:|^\s*\* Where:|^\s*\* Exception is:|^\s*Caused by:|Execution failed for task|> Task .* FAILED|\berror:|\be:\s+file:|^e: |^w: file:|BUILD FAILED)")
+          marker = re.compile(r"(?i)(^FAILURE:|^\s*\* What went wrong:|^\s*\* Where:|^\s*\* Exception is:|^\s*Caused by:|Execution failed for task|> Task .* FAILED|\berror:|\be:\s+file:|^e: |^w: file:|BUILD FAILED|^\S+Test > .* FAILED|AssertionError|ComparisonFailure|\bexpected:)")
           hits = [index for index, line in enumerate(lines) if marker.search(line)]
           selected = set()
           for index in hits[-60:]:

@@ -79,8 +79,10 @@ Dialogue: 0,0:00:02.50,0:00:04.00,Default,,0,0,0,,{\i1}One\Ntwo{\i0}.
         val result = SubtitleNormalizer.normalize(cues, maxCharacters = 96)
         assertEquals(2, result.size)
         assertEquals("We are learning.", result.first().text)
-        assertEquals("Really ?", result.last().text)
+        // Stray space before closing punctuation is normalized away (SUB-7).
+        assertEquals("Really?", result.last().text)
         assertEquals(0L, result.first().id)
+        assertEquals("Really?", SubtitleNormalizer.cleanText("Really ?"))
     }
 
     @Test fun batchToolsFlattenAndSplitAtReadableBoundariesWithoutLosingDuration() {
