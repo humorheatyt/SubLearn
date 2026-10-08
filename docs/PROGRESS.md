@@ -1,6 +1,6 @@
 # Progress
 
-**Last updated:** 2026-10-08. **Definition of Done: NOT MET.** This is an unverified pre-release implementation on `arena/4386d633-sublearn`. The draft PR is [#1](https://github.com/humorheatyt/SubLearn/pull/1). No successful build, unit test, lint, APK artifact, emulator/device run, merge, or `v0.1.0` tag has been observed; all eight Android CI runs so far failed at Gradle verification. Annotations exposed three successive Kotlin compile issues; the current `CueGroup` import fix awaits a fresh CI result (REQ-005).
+**Last updated:** 2026-10-08. **Definition of Done: NOT MET.** This is an unverified pre-release implementation on `arena/4386d633-sublearn`. The draft PR is [#1](https://github.com/humorheatyt/SubLearn/pull/1). No successful build, unit test, lint, APK artifact, emulator/device run, merge, or `v0.1.0` tag has been observed; all ten Android CI runs so far failed at Gradle verification. Annotations exposed five successive Kotlin issues; the latest import/initialization-order fixes await CI confirmation (REQ-005).
 
 ## Goal
 
@@ -25,7 +25,7 @@ The above is an implementation inventory, not a claim that the app runs. Check `
 - Python `xml.etree.ElementTree` parsed all 15 repository XML files (resources/manifests) with zero errors.
 - Tree-sitter Kotlin grammar parsed all 34 Kotlin source/test files with zero syntax-error or missing nodes. EN/FA parity passed for app (34 keys), core/platform (5), home (23), player (81), learning (14), and settings (141); the local `R.string` reference scan found zero missing keys. These are static checks only: Tree-sitter cannot type-check Android/Compose symbols or substitute for Android resource linking.
 - `./gradlew assembleDebug testDebugUnitTest lint` was attempted locally before and after the compiler fixes with a temporary Java 21 runtime; each attempt failed before configuration because the TLS handshake to `services.gradle.org` failed while downloading Gradle 8.9. Running without Java also fails immediately (`java: not found`). No local Gradle task ran.
-- GitHub Actions runs `37822587380`/`37822600898` (`b4a8ed3`), `37835059008`/`37835063379` (`c567727`), `37835733412`/`37835739889` (`b8440e1`), and `37836688168`/`37836697332` (`87dc8d2`) all completed with `Verify Android project` failing; APK upload and dependent Android 12 smoke tests were skipped. Check annotations exposed nullable-`Uri`, cue-time `Int`/`Long`, and wrong-`CueGroup`-package errors. The current import correction is locally static-checked and awaits CI; see `REQ-005`.
+- GitHub Actions runs `37822587380`/`37822600898` (`b4a8ed3`), `37835059008`/`37835063379` (`c567727`), `37835733412`/`37835739889` (`b8440e1`), `37836688168`/`37836697332` (`87dc8d2`), and `37837301728`/`37837308854` (`271267e`) all completed with `Verify Android project` failing; APK upload and dependent Android 12 smoke tests were skipped. Check annotations exposed nullable-`Uri`, cue-time `Int`/`Long`, wrong-`CueGroup`-package, unused-import, and init-order errors. The latest fixes are locally static-checked and await CI; see `REQ-005`.
 
 ## Build recovery attempts and current blockers
 
@@ -35,7 +35,7 @@ See detailed evidence in `AGENT_REQUESTS.md`:
 2. Installed a temporary Java 21 runtime under `/tmp` from PyPI (`jdk4py`) so the wrapper could start; it then failed with `SSLHandshakeException` while downloading Gradle 8.9 from `services.gradle.org`.
 3. Queried the official GitHub release distribution through the allowed GitHub API; its asset redirects to the blocked `release-assets.githubusercontent.com` host. The required Gradle command still reaches no Gradle task.
 
-No Android SDK/emulator result is available. The GitHub Actions build and API 31 smoke workflow ran on four commits, but Gradle verification failed in all push/PR pairs; the smoke job was skipped. The marker-focused annotation identified three Kotlin compile issues and guided local fixes, which remain pending CI confirmation.
+No Android SDK/emulator result is available. The GitHub Actions build and API 31 smoke workflow ran on five commits, but Gradle verification failed in all push/PR pairs; the smoke job was skipped. Marker-focused annotations identified five Kotlin compile issues and guided source fixes, which remain pending CI confirmation.
 
 ## Open license/rights review
 
@@ -45,7 +45,7 @@ No Android SDK/emulator result is available. The GitHub Actions build and API 31
 
 ## What remains
 
-1. Commit and push the corrected Media3 `CueGroup` import on `arena/4386d633-sublearn`; inspect the next CI result and fix every newly exposed compile/test/lint failure.
+1. Commit and push the invalid-import removal and `listener` init-order fix on `arena/4386d633-sublearn`; inspect the next CI result and fix every newly exposed compile/test/lint failure.
 2. Keep PR #1 in draft while CI is red or inconclusive; do not mark any checklist row verified without evidence.
 3. Add or strengthen tests for settings normalization/migration, repository/Room schema, SAF sidecars, all gestures/translation pause-resume, repeat cancellation, and RTL; rerun `./gradlew assembleDebug testDebugUnitTest lint` and `connectedDebugAndroidTest` in CI.
 4. On an API 31 emulator and Poco X3 Pro (or equivalent), verify local and HTTP playback, hardware/software decoder availability, embedded/external subtitle behavior, folder/sidecar permissions, audio focus, PiP, lifecycle/process restore, orientation, brightness/volume, EN/FA and accessibility.

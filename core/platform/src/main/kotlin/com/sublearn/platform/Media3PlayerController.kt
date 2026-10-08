@@ -15,7 +15,6 @@ import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
-import androidx.media3.exoplayer.trackselection.TrackSelectionParameters
 import com.sublearn.domain.Cue
 import com.sublearn.domain.DecoderMode
 import com.sublearn.domain.MediaRequest
@@ -69,14 +68,6 @@ class Media3PlayerController(context: Context) : PlayerController {
     }
 
     val media3Player: Player get() = player
-
-    init {
-        player.addListener(listener)
-        player.setAudioAttributes(
-            AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
-            true,
-        )
-    }
 
     override suspend fun open(request: MediaRequest, queue: List<MediaRequest>) {
         check(!released) { "Player has been released" }
@@ -359,5 +350,13 @@ class Media3PlayerController(context: Context) : PlayerController {
         override fun onPlayerError(error: PlaybackException) {
             mutableSnapshot.update { it.copy(errorMessage = appContext.getString(R.string.media3_playback_error, error.errorCodeName)) }
         }
+    }
+
+    init {
+        player.addListener(listener)
+        player.setAudioAttributes(
+            AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
+            true,
+        )
     }
 }
