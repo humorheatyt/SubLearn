@@ -1,6 +1,8 @@
 # SubLearn
 
-**SubLearn** is an open-source Android video player and English-learning companion. It puts two independently styled subtitle layers, tap-to-translate, repeat/shadowing controls, a searchable transcript, My Words and opt-in contextual AI around local videos and direct video streams.
+**SubLearn** is an open-source Android video player and English-learning companion.
+
+**[Download v0.1.0](https://github.com/humorheatyt/SubLearn/releases/tag/v0.1.0)** — pick `arm64-v8a` for most phones (including the Poco X3 Pro), `x86_64` for emulators, or `universal` if unsure. Verify with `SHA256SUMS.txt`. It puts two independently styled subtitle layers, tap-to-translate, repeat/shadowing controls, a searchable transcript, My Words and opt-in contextual AI around local videos and direct video streams.
 
 > **Verification status (2026-10-08):** CI is green on `arena/c5e36220-sublearn` — the full gate `assembleDebug testDebugUnitTest :core:domain:test :core:subtitles:test lint` passes (24 JVM unit tests + 4 Robolectric Compose UI tests on API 31 + lint). The release pipeline publishes signed `v0.1.0` APKs (arm64-v8a / armeabi-v7a / x86_64 / universal + SHA256SUMS) on the GitHub Releases page. A physical-device pass (Poco X3 Pro) is still recommended before relying on playback/PiP/decoder specifics; see [docs/CHECKLIST.md](docs/CHECKLIST.md) and [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md).
 
