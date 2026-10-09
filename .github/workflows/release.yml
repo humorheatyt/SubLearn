@@ -89,6 +89,8 @@ jobs:
           signed=no
           EOF
           cd "$work"
+          mkdir -p .github/workflows
+          cp "$GITHUB_WORKSPACE/.github/workflows/publish-release.yml" .github/workflows/
           git init -q -b "$staging_branch"
           git config user.name "SubLearn release bot"
           git config user.email "release-bot@sublearn.local"

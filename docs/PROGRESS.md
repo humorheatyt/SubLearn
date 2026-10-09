@@ -37,7 +37,7 @@ UI smoke tests run on the JVM via Robolectric (`app/src/test/kotlin/com/sublearn
 
 ## Release state
 
-See the GitHub Releases page for `v0.1.0`: `SubLearn-0.1.0-{arm64-v8a,armeabi-v7a,x86_64,universal}.apk` + `SHA256SUMS.txt`, signed with the SubLearn release key (SHA-256 cert fingerprint recorded in DECISIONS #27-era notes and `sublearn-signing/`). The key is outside the repo — back it up (REQ-006).
+**`v0.1.0` is published:** https://github.com/humorheatyt/SubLearn/releases/tag/v0.1.0 — `SubLearn-0.1.0-{arm64-v8a,armeabi-v7a,x86_64,universal}.apk` + `SHA256SUMS.txt`. All APKs are signed with the SubLearn release key (RSA-4096, v2+v3 schemes, `apksigner verify` OK). The key lives outside the repo in the workspace `sublearn-signing/` (cert SHA-256 fingerprint `37:CF:34:8E:…:E9:84`) — **back it up** (REQ-006); losing it breaks in-place updates. The v0.1.0 release used the staged signing pipeline (DECISIONS #27): tag → `release.yml` staged unsigned APKs on `release-staging/v0.1.0` → agent signed and pushed `signed/` → `publish-release.yml` verified and published, then deleted the staging branch.
 
 ## Continuing checklist
 

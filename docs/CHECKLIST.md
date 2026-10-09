@@ -82,7 +82,7 @@
 | ENG-13 | 0, 9 | CI-VERIFIED (resources) | EN/FA parity across all 6 resource sets (automatically re-checkable script in docs); light/dark/AMOLED themes via `ThemeMode`; font scaling supported by sp units. TalkBack pass due on device. |
 | LIC-1 | 0, 9 | PARTIAL (legal review open) | Apache-2.0 app license, `THIRD_PARTY_NOTICES.md` maintained; no GPL code/data/models committed. REQ-001 (dictionary provenance) and REQ-003 (ML Kit terms) remain owner decisions. |
 | DOC-1 | 0, 9 | CI-VERIFIED (present) | Full doc set maintained and cross-linked (`AGENTS.md` entry point). |
-| REL-1 | 9 | IN PROGRESS | Green CI + release workflows (`release.yml`, `publish-release.yml`) + signing key ready (REQ-006 notes the secrets gap). `v0.1.0` tag + GitHub Release produced as the final step of this session. |
+| REL-1 | 9 | **RELEASED** | `v0.1.0` published 2026-10-09: https://github.com/humorheatyt/SubLearn/releases/tag/v0.1.0 — signed APKs `SubLearn-0.1.0-{arm64-v8a,armeabi-v7a,x86_64,universal}.apk` + `SHA256SUMS.txt` (v2+v3 signatures verified with `apksigner`). Green CI on `main` (`3304340`). |
 
 ## LATER interfaces/stubs and disabled UI
 
@@ -106,4 +106,4 @@
 - **Instrumented emulator gate:** attempted non-blocking; failing — cause not visible from the sandbox (logs host blocked); tracked in KNOWN_ISSUES and fixable in CI via the report artifacts.
 - **Device gate (Poco X3 Pro / API 31):** not performed in this environment; required before calling the device-dependent rows done-done (ENG-10, PLY gestures feel, PiP, decoder quirks).
 - **Rights review:** REQ-001/REQ-003 owner decisions; REQ-006 signing-secrets convenience.
-- **Release:** see `docs/PROGRESS.md` for the v0.1.0 outcome.
+- **Release:** `v0.1.0` is published (see REL-1 row and `docs/PROGRESS.md`).
